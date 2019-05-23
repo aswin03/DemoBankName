@@ -1,0 +1,7 @@
+com\edubank\validator\test\CustomerLoginValidatorTest.class
+com\edubank\validator\test\TellerValidatorTest.class
+com\edubank\validator\test\CustomerValidatorTest.class
+com\edubank\testsuite\EDUBankTestSuite.class
+com\edubank\validator\test\DebitCardValidatorTest.class
+com\edubank\validator\test\AccountValidatorTest.class
+com\edubank\validator\test\TransactionValidatorTest.class

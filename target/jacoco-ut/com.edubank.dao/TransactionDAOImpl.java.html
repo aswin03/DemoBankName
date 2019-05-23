@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TransactionDAOImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.dao</a> &gt; <span class="el_source">TransactionDAOImpl.java</span></div><h1>TransactionDAOImpl.java</h1><pre class="source lang-java linenums">package com.edubank.dao;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.edubank.entity.TransactionEntity;
+import com.edubank.model.Transaction;
+
+
+/**
+ * This is a DAO class having methods to perform CRUD operations on transaction
+ * table.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Repository(&quot;transactionDAO&quot;)
+<span class="nc" id="L31">public class TransactionDAOImpl implements TransactionDAO {</span>
+
+	@Autowired
+	SessionFactory sessionFactory;
+
+	/**
+	 * This method is used to persist the transaction
+	 * 
+	 * @param transaction, createdBy
+	 *            
+	 * @return transactionId
+	 */
+	@Override
+	public Long addTransaction(Transaction transaction, String createdBy) throws Exception {
+
+<span class="nc" id="L46">		Long transactionId = null;</span>
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L56">		Session session = sessionFactory.getCurrentSession();</span>
+			
+
+			/*
+			 * here we are creating an entity object  and
+			 * setting the values to that entity object from model object
+			 **/
+<span class="nc" id="L63">			TransactionEntity transactionEntity = new TransactionEntity();</span>
+<span class="nc" id="L64">			transactionEntity.setAccountNumber(transaction.getAccountNumber());</span>
+<span class="nc" id="L65">			transactionEntity.setAmount(transaction.getAmount());</span>
+<span class="nc" id="L66">			transactionEntity.setCreatedBy(createdBy);</span>
+<span class="nc" id="L67">			transactionEntity.setInfo(transaction.getInfo());</span>
+<span class="nc" id="L68">			transactionEntity.setRemarks(transaction.getRemarks());</span>
+<span class="nc" id="L69">			transactionEntity.setTransactionMode(transaction</span>
+<span class="nc" id="L70">					.getTransactionMode());</span>
+<span class="nc" id="L71">			transactionEntity.setType(transaction.getType());</span>
+
+			/*
+			 * here we are adding the Entity to table using save method save
+			 * method will return primary key of that row
+			 */
+<span class="nc" id="L77">			transactionId = (Long) session.save(transactionEntity);</span>
+
+	
+<span class="nc" id="L80">		return transactionId;</span>
+	}
+
+	
+	/**
+	 * @see com.edubank.dao.TransactionDAO#getAccountTransactionsForDateRange
+	 * (java.lang.String, java.time.LocalDate, java.time.LocalDate)
+	 */
+	@Override
+	public List&lt;Transaction&gt; getAccountTransactionsForDateRange(
+			String accountNumber, LocalDate fromDate, LocalDate toDate) throws Exception {
+<span class="nc" id="L91">		List&lt;Transaction&gt; transactionsList = null;</span>
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L101">		Session session = sessionFactory.getCurrentSession();</span>
+
+			/*
+			 * CriteriaBuilder Used to construct criteria queries, compound
+			 * selections, expressions, predicates, orderings. here we are
+			 * fetching value from database using criteria builder with various methods
+			 * based on the different given condition
+			 **/
+<span class="nc" id="L109">			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L110">			CriteriaQuery&lt;TransactionEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L111">					.createQuery(TransactionEntity.class);</span>
+
+			 /*
+			  * Root is used for selecting the different properties of the class of from clause
+			  **/
+<span class="nc" id="L116">			Root&lt;TransactionEntity&gt; root = criteriaQuery</span>
+<span class="nc" id="L117">					.from(TransactionEntity.class);</span>
+
+			/*
+			 * here we are creating LocaldateTime object
+			 * to pass it to criteria so to get transaction 
+			 * between the given dates
+			 **/ 
+<span class="nc" id="L124">			LocalDateTime fromDateTime = LocalDateTime.of(fromDate,</span>
+<span class="nc" id="L125">					LocalTime.of(0, 0, 0, 0));</span>
+<span class="nc" id="L126">			LocalDateTime toDateTime = LocalDateTime</span>
+<span class="nc" id="L127">					.of(toDate, LocalTime.now());</span>
+
+<span class="nc" id="L129">			Predicate p1 = criteriaBuilder.equal(root.get(&quot;accountNumber&quot;),</span>
+					accountNumber);
+<span class="nc" id="L131">			Predicate p2 = criteriaBuilder.between(root.get(&quot;transactionDateTime&quot;),</span>
+					fromDateTime, toDateTime);
+
+<span class="nc" id="L134">			criteriaQuery.where(p1, p2);</span>
+<span class="nc" id="L135">			criteriaQuery.orderBy(criteriaBuilder.desc(root.get(&quot;transactionDateTime&quot;)));</span>
+			
+			/*
+			 * the above criteria return us the list of entities
+			 **/
+<span class="nc" id="L140">			List&lt;TransactionEntity&gt; transactionsListFromDAO = session</span>
+<span class="nc" id="L141">					.createQuery(criteriaQuery).getResultList();</span>
+			
+			/*
+			 * here if the list of entities length is more than 1 then we are
+			 * creating a bean object using getContext and setting the values
+			 * into bean object from entities that we received from database
+			 * to iterate over the entity list we are using for loop
+			 * then after setting the values to bean object we are adding 
+			 * the values to the transaction list  
+			 */
+<span class="nc bnc" id="L151" title="All 2 branches missed.">			if (!transactionsListFromDAO.isEmpty()) {</span>
+<span class="nc" id="L152">				transactionsList = new ArrayList&lt;Transaction&gt;();</span>
+
+<span class="nc bnc" id="L154" title="All 2 branches missed.">				for (TransactionEntity transactionEnt : transactionsListFromDAO) {</span>
+<span class="nc" id="L155">					Transaction tran = new Transaction();</span>
+<span class="nc" id="L156">					tran.setTransactionId(transactionEnt.getTransactionId());</span>
+<span class="nc" id="L157">					tran.setTransactionDateTime(transactionEnt</span>
+<span class="nc" id="L158">							.getTransactionDateTime());</span>
+<span class="nc" id="L159">					tran.setType(transactionEnt.getType());</span>
+<span class="nc" id="L160">					tran.setInfo(transactionEnt.getInfo());</span>
+<span class="nc" id="L161">					tran.setAmount(transactionEnt.getAmount());</span>
+
+<span class="nc" id="L163">					transactionsList.add(tran);</span>
+<span class="nc" id="L164">				}</span>
+			}
+
+<span class="nc" id="L167">		return transactionsList;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CustomerLoginDAOImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.dao</a> &gt; <span class="el_source">CustomerLoginDAOImpl.java</span></div><h1>CustomerLoginDAOImpl.java</h1><pre class="source lang-java linenums">package com.edubank.dao;
+
+import java.security.NoSuchAlgorithmException;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.edubank.entity.CustomerLoginEntity;
+import com.edubank.model.CustomerLogin;
+import com.edubank.utility.Hashing;
+
+/**
+ * This class contains the methods responsible for interacting the database
+ * with respect to Login module like getLoginOfCustomer, changeCustomerPassword.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Repository(value = &quot;customerloginDao&quot;)
+<span class="nc" id="L26">public class CustomerLoginDAOImpl implements CustomerLoginDAO {</span>
+
+	@Autowired
+	SessionFactory sessionFactory;
+
+	/**
+	 * This method is used to get a CustomerLogin model corresponding to its
+	 * loginName&lt;br&gt;
+	 * It uses CriteriaBuilder to interact with database for fetching the data
+	 * 
+	 * @param loginName
+	 * 
+	 * @return customerLogin
+	 */
+	@Override
+	public CustomerLogin getCustomerLoginByLoginName(String loginName) throws Exception {
+		
+<span class="nc" id="L43">		loginName = loginName.toLowerCase();</span>
+<span class="nc" id="L44">		CustomerLogin customerLogin = null;</span>
+				
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L54">		Session session = sessionFactory.getCurrentSession();</span>
+
+			/*
+			 * If we are getting the session through openSession and we need to make
+			 * a transaction to the database, we need to begin a transaction. As we
+			 * have opened a new transaction, we don't need to check if the
+			 * transaction is already active or not.
+			 */
+
+			/* Create a builder which is used to create criteria. 
+			 * This builder contains many methods for arithmetic, logical and other operations */
+<span class="nc" id="L65">			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+			
+			/* Creating the criteria query specifying the required output i.e. CustomerLoginEntity */
+<span class="nc" id="L68">			CriteriaQuery&lt;CustomerLoginEntity&gt; criteriaQuery = criteriaBuilder.createQuery(CustomerLoginEntity.class);</span>
+			
+			/* From clause is implemented. 
+			 * Root is used for selecting the different properties of the class of from clause */
+<span class="nc" id="L72">			Root&lt;CustomerLoginEntity&gt; root = criteriaQuery.from(CustomerLoginEntity.class);</span>
+			
+			/* Get the property loginName using root 
+			 * equals method can be used of builder for comparing */
+<span class="nc" id="L76">			criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;loginName&quot;), loginName));</span>
+			
+			/*
+			 * createQuery: is used to Convert the Criteria to executable Query which can be queried
+			 * uiqueResult: is used to execute the query and get single entity instead of list of entities
+			 *  */
+<span class="nc" id="L82">			CustomerLoginEntity customerLoginEntity = session.createQuery(criteriaQuery).uniqueResult();</span>
+			
+			/* here we are getting values from entity class and setting it to bean class */
+<span class="nc bnc" id="L85" title="All 2 branches missed.">			if (customerLoginEntity != null) {</span>
+<span class="nc" id="L86">				customerLogin = new CustomerLogin();</span>
+<span class="nc" id="L87">				customerLogin.setCustomerLoginId(customerLoginEntity.getCustomerLoginId());</span>
+<span class="nc" id="L88">				customerLogin.setCustomerId(customerLoginEntity.getCustomerId());</span>
+<span class="nc" id="L89">				customerLogin.setLoginName(customerLoginEntity.getLoginName());</span>
+<span class="nc" id="L90">				customerLogin.setLockedStatus(customerLoginEntity.getLockedStatus());</span>
+<span class="nc" id="L91">				customerLogin.setPassword(customerLoginEntity.getPassword());</span>
+			}
+			
+<span class="nc" id="L94">		return customerLogin;</span>
+	}
+
+	/**
+	 * This method is used to get a CustomerLogin model corresponding to its
+	 * customerId&lt;br&gt;
+	 * It uses CriteriaBuilder to interact with database for fetching the data
+	 * 
+	 * @param customerId
+	 * 
+	 * @return customerLogin
+	 */
+	@Override
+	public CustomerLogin getCustomerLoginByCustomerId(Integer customerId) throws Exception {
+<span class="nc" id="L108">		CustomerLogin customerLogin = null;</span>
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L118">		Session session = sessionFactory.getCurrentSession();</span>
+
+			
+			
+			/* Create a builder which is used to create criteria. 
+			 * This builder contains many methods for arithmetic, logical and other operations */
+<span class="nc" id="L124">			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+			
+			/* Creating the criteria query specifying the required output i.e. CustomerLoginEntity */
+<span class="nc" id="L127">			CriteriaQuery&lt;CustomerLoginEntity&gt; criteriaQuery = criteriaBuilder.createQuery(CustomerLoginEntity.class);</span>
+			
+			/* From clause is implemented. 
+			 * Root is used for selecting the different properties of the class of from clause */
+<span class="nc" id="L131">			Root&lt;CustomerLoginEntity&gt; root = criteriaQuery.from(CustomerLoginEntity.class);</span>
+			
+			/* Get the property loginName using root 
+			 * equals method can be used of builder for comparing */
+<span class="nc" id="L135">			criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;customerId&quot;), customerId));</span>
+			
+			/*
+			 * createQuery: is used to Convert the Criteria to executable Query which can be queried
+			 * uiqueResult: is used to execute the query and get single entity instead of list of entities
+			 *  */
+<span class="nc" id="L141">			CustomerLoginEntity customerLoginEntity = session.createQuery(criteriaQuery).uniqueResult();</span>
+			
+			/* here we are getting values from entity class and setting it to bean class */
+<span class="nc bnc" id="L144" title="All 2 branches missed.">			if (customerLoginEntity != null) {</span>
+<span class="nc" id="L145">				customerLogin = new CustomerLogin();</span>
+<span class="nc" id="L146">				customerLogin.setCustomerLoginId(customerLoginEntity.getCustomerLoginId());</span>
+<span class="nc" id="L147">				customerLogin.setCustomerId(customerLoginEntity.getCustomerId());</span>
+<span class="nc" id="L148">				customerLogin.setLoginName(customerLoginEntity.getLoginName());</span>
+<span class="nc" id="L149">				customerLogin.setLockedStatus(customerLoginEntity.getLockedStatus());</span>
+<span class="nc" id="L150">				customerLogin.setPassword(customerLoginEntity.getPassword());</span>
+			}
+		
+<span class="nc" id="L153">		return customerLogin;</span>
+	}
+
+	/**
+	 * This method is used to change the password of an existing Customer. It
+	 * takes CustomerLogin as a parameter, which includes, customerId and
+	 * newPassword, it fetches an entity on the basis of customerId, and updates
+	 * the password to newPassword received.&lt;br&gt;
+	 * It uses CriteriaBuilder to interact with database for fetching the data
+	 * 
+	 * @param customerLogin
+	 * 
+	 */
+	@Override
+	public void changeCustomerPassword(CustomerLogin customerLogin) throws Exception {
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L177">		Session session = sessionFactory.getCurrentSession();</span>
+					
+			/* Create a builder which is used to create criteria. 
+			 * This builder contains many methods for arithmetic, logical and other operations */
+<span class="nc" id="L181">			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+			
+			/*
+			 * Creating the criteria query specifying the required output i.e. CustomerLoginEntity */
+<span class="nc" id="L185">			CriteriaQuery&lt;CustomerLoginEntity&gt; criteriaQuery = criteriaBuilder.createQuery(CustomerLoginEntity.class);</span>
+			
+			/*
+			 *From clause is implemented. 
+			 *Root is used for selecting the different properties of the class of from clause */
+<span class="nc" id="L190">			Root&lt;CustomerLoginEntity&gt; root = criteriaQuery.from(CustomerLoginEntity.class);</span>
+			
+			/*
+			 * Get the property loginName using root 
+			 *equals method can be used of builder for comparing */
+<span class="nc" id="L195">			criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;customerId&quot;), customerLogin.getCustomerId()));</span>
+			
+			/*
+			 * createQuery: is used to Convert the Criteria to executable Query which can be queried
+			 * uiqueResult: is used to execute the query and get single entity instead of list of entities
+			 *  */
+<span class="nc" id="L201">			CustomerLoginEntity customerLoginEntity = session.createQuery(criteriaQuery).uniqueResult();</span>
+			
+			/*
+			 * Where we are setting the new value in entity which is to be updated */
+<span class="nc" id="L205">			customerLoginEntity.setPassword(customerLogin.getNewPassword());</span>
+
+			/*
+			 * If we want the changes done to an entity which is in manage
+			 * state(Application context) to be reflected in the database, then the
+			 * transaction must be committed.
+			 */
+
+<span class="nc" id="L213">	}</span>
+
+	/**
+	 * This method is check weather the loginName is already present in the
+	 * database if so return the number of records with similar loginName&lt;br&gt;
+	 *
+	 * @param loginName
+	 * 
+	 * @return numberOfRecordWithSameLogin
+	 */
+	@Override
+	public Long checkAvailabilityOfloginName(String loginName) throws Exception {
+
+<span class="nc" id="L226">		Long noOfCustomerWithsameLoginName = null;</span>
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L236">		Session session = sessionFactory.getCurrentSession();</span>
+
+			
+			
+			/* Create a builder which is used to create criteria. 
+			 * This builder contains many methods for arithmetic, logical and other operations */
+<span class="nc" id="L242">			CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+			
+			
+<span class="nc" id="L245">			CriteriaQuery&lt;Long&gt; criteriaQuery = criteriaBuilder.createQuery(Long.class);</span>
+			
+			/*
+			 *From clause is implemented. 
+			 *Root is used for selecting the different properties of the class of from clause */
+<span class="nc" id="L250">			Root&lt;CustomerLoginEntity&gt; root = criteriaQuery.from(CustomerLoginEntity.class);</span>
+
+<span class="nc" id="L252">			criteriaQuery.where(criteriaBuilder.like(root.get(&quot;loginName&quot;), loginName + &quot;%&quot;));</span>
+
+<span class="nc" id="L254">			criteriaQuery.select(criteriaBuilder.count(root.get(&quot;customerLoginId&quot;)));</span>
+
+<span class="nc" id="L256">			noOfCustomerWithsameLoginName = session.createQuery(criteriaQuery).uniqueResult();</span>
+
+<span class="nc" id="L258">		return noOfCustomerWithsameLoginName;</span>
+
+	}
+
+	/**
+	 * This method is used to persist a new login details for the newly added
+	 * Customer with the data from the model object&lt;br&gt;
+	 *
+	 * it finds the loginName by using entered eame
+	 * 
+	 * populate all the values to the entity from bean and persist to the
+	 * database
+	 * 
+	 * @param customer
+	 * 
+	 * @return customerLoginId
+	 */
+	@Override
+	public Integer addNewCustomerLogin(CustomerLogin customerLogin) throws NoSuchAlgorithmException, Exception {
+
+<span class="nc" id="L278">		Integer customerLoginId = null;</span>
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L288">		Session session = sessionFactory.getCurrentSession();</span>
+
+			
+
+
+<span class="nc" id="L293">			CustomerLoginEntity customerLoginEntity = new CustomerLoginEntity();</span>
+
+<span class="nc" id="L295">			customerLoginEntity.setCustomerId(customerLogin.getCustomerId());</span>
+<span class="nc" id="L296">			customerLoginEntity.setLockedStatus(customerLogin.getLockedStatus());</span>
+<span class="nc" id="L297">			customerLoginEntity.setLoginName(customerLogin.getLoginName());</span>
+<span class="nc" id="L298">			customerLoginEntity.setPassword(Hashing.getHashValue(customerLogin.getPassword()));</span>
+
+			
+			/*
+			 *  here we are adding the customerLoginEntity to CUSTOMER_LOGIN table using save method 
+			 * save method will return primary key of that row
+			 */
+<span class="nc" id="L305">			customerLoginId = (Integer) session.save(customerLoginEntity);</span>
+			
+			/*
+			 * If we want the changes done to an entity which is in manage
+			 * state(Application context) to be reflected in the database, then the
+			 * transaction must be committed.
+			 */
+			
+<span class="nc" id="L313">		return customerLoginId;</span>
+
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

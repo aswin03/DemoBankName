@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>DebitCardValidator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.validator</a> &gt; <span class="el_source">DebitCardValidator.java</span></div><h1>DebitCardValidator.java</h1><pre class="source lang-java linenums">package com.edubank.validator;
+
+import com.edubank.model.DebitCard;
+
+/**
+ * The DebitCardValidator class is a utility class having static methods, used
+ * to validate the data entered from the form related to debit card. &lt;br&gt;
+ * &lt;i&gt;Example:-&lt;/i&gt; Debit Card Pin.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+<span class="nc" id="L13">public class DebitCardValidator {</span>
+
+	/**
+	 * This method validates the debit card pin , along while new pin and
+	 * confirm new pin while changing the debit card pin. Valid debit card pin
+	 * format :- Pin should be of four digit, digits should not be in sequence
+	 * 
+	 * @param debitCard
+	 * 
+	 * @throws Exception
+	 *             if the current pin is not in proper format or
+
+	 *             if the new pin is not in proper format or 
+
+	 *             if the confirm new pin is not in proper format or 
+
+	 *             if the confirm new pin is not matching new pin.
+	 */
+	public static void validateChangeDebitCardPin(DebitCard debitCard)
+			throws Exception {
+
+<span class="fc bfc" id="L34" title="All 2 branches covered.">		if (!validatePin(debitCard.getPin())) {</span>
+<span class="fc" id="L35">			throw new Exception(</span>
+					&quot;DebitCardValidator.INVALID_CURRENT_PIN_FORMAT&quot;);
+		}
+<span class="fc bfc" id="L38" title="All 2 branches covered.">		if (!validatePin(debitCard.getNewPin())) {</span>
+<span class="fc" id="L39">			throw new Exception(</span>
+					&quot;DebitCardValidator.INVALID_NEW_PIN_FORMAT&quot;);
+		}
+<span class="fc bfc" id="L42" title="All 2 branches covered.">		if (!validatePin(debitCard.getConfirmNewPin())) {</span>
+<span class="fc" id="L43">			throw new Exception(</span>
+					&quot;DebitCardValidator.INVALID_CONFIRM_NEW_PIN_FORMAT&quot;);
+		}
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">		if (!debitCard.getNewPin().equals(debitCard.getConfirmNewPin())) {</span>
+<span class="fc" id="L47">			throw new Exception(</span>
+					&quot;DebitCardValidator.CONFIRM_NEW_PIN_SHOULD_MATCH_NEW_PIN&quot;);
+		}
+<span class="nc" id="L50">	}</span>
+
+	/**
+	 * This method validates the debit card pin whether it is in proper format
+	 * or not. Valid format:- Pin should be of four digit, digits should not be
+	 * in sequence
+	 * 
+	 * @param pin
+	 * 
+	 * @return true if the pin is in proper format, else false
+	 */
+	public static boolean validatePin(String pin) {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">		if (pin.matches(&quot;[0-9]{4}&quot;)) {</span>
+<span class="fc bfc" id="L63" title="All 4 branches covered.">			if (!&quot;1234&quot;.equals(pin) &amp;&amp; !&quot;2345&quot;.equals(pin)</span>
+<span class="fc bfc" id="L64" title="All 4 branches covered.">					&amp;&amp; !&quot;3456&quot;.equals(pin) &amp;&amp; !&quot;4567&quot;.equals(pin)</span>
+<span class="fc bfc" id="L65" title="All 4 branches covered.">					&amp;&amp; !&quot;5678&quot;.equals(pin) &amp;&amp; !&quot;6789&quot;.equals(pin)</span>
+<span class="fc bfc" id="L66" title="All 4 branches covered.">					&amp;&amp; !&quot;7890&quot;.equals(pin) &amp;&amp; !&quot;0123&quot;.equals(pin)) {</span>
+<span class="fc" id="L67">				return true;</span>
+			}
+		}
+
+<span class="fc" id="L71">		return false;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

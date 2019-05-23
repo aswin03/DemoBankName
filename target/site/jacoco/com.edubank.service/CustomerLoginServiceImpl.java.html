@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CustomerLoginServiceImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.service</a> &gt; <span class="el_source">CustomerLoginServiceImpl.java</span></div><h1>CustomerLoginServiceImpl.java</h1><pre class="source lang-java linenums">package com.edubank.service;
+
+import java.security.NoSuchAlgorithmException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.edubank.dao.CustomerDAO;
+import com.edubank.dao.CustomerLoginDAO;
+import com.edubank.model.Customer;
+import com.edubank.model.CustomerLogin;
+import com.edubank.model.CustomerLoginLockedStatus;
+import com.edubank.utility.Hashing;
+import com.edubank.validator.CustomerLoginValidator;
+
+/**
+ * This class contains the methods for business logics related to Login
+ * modules, like authenticate customer login, change password, etc.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Service(value = &quot;customerLoginService&quot;)
+@Transactional(readOnly=true)
+<span class="nc" id="L27">public class CustomerLoginServiceImpl implements CustomerLoginService {</span>
+
+	@Autowired
+	private CustomerLoginDAO customerLoginDao;
+
+	@Autowired
+	private CustomerDAO customerDao;
+
+	/**
+	 * This method is used to authenticate the login credentials entered by
+	 * customer. It checks the loginName and password with input field
+	 * validation, if valid it verifies the credential with the database. If
+	 * verified, it checks whether the account is locked. &lt;br&gt;
+	 * 
+	 * @param customerLogin
+	 * 
+	 * @return customer object if the credentials are valid and the account is
+	 *         not locked
+	 * 
+	 * @throws Exception
+	 *             if the loginName is not in proper format
+	 * 				or
+	 *             if the password is not in proper format
+	 *				or
+	 *             if the loginName is not matching any record in the database
+	 *             or the password entered is incorrect with respect to the
+	 *             loginName.
+	 * @throws NoSuchAlgorithmException
+	 *             if the name of algorithm is incorrect used in password
+	 *             hashing mechanism.
+	 * @throws Exception
+	 *             if the credentials are proper but the account is locked
+	 * @throws Exception
+	 */
+	@Override
+	public Customer authenticateCustomerLogin(CustomerLogin customerLogin)
+			throws Exception {
+		
+		/*
+		 * here we are calling the validateLoginMethod method of
+		 * customerLoginValidator class
+		 * passing the argument customerLogin in it
+		 * this is a void method 
+		 * which will validate the condition and if things are not accordingly 
+		 * this will throw exception */
+<span class="nc" id="L72">		CustomerLoginValidator.validateLoginDetails(customerLogin);</span>
+		
+		/*
+		 * After validating we are calling the dao class
+		 * we are calling getCustomerLoginByLoginName method of customerLoginDao
+		 * this method will return us customerLogin class by passing customer name to it  
+		 **/
+<span class="nc" id="L79">		CustomerLogin loginFromDAO = customerLoginDao</span>
+<span class="nc" id="L80">				.getCustomerLoginByLoginName(customerLogin.getLoginName());</span>
+		
+		/*
+		 * if the above method doesn't return us anything
+		 * This will throw InvalidCredentialsException having message 
+		 * &quot;LoginService.INVALID_CREDENTIALS&quot; 
+		 **/
+<span class="nc bnc" id="L87" title="All 2 branches missed.">		if (loginFromDAO == null) {</span>
+<span class="nc" id="L88">			throw new Exception(</span>
+					&quot;LoginService.INVALID_CREDENTIALS&quot;);
+		}
+		
+		/*
+		 * here we are generating hash value of the password 
+		 */
+<span class="nc" id="L95">		String hashValueOfPassword = Hashing.getHashValue(customerLogin</span>
+<span class="nc" id="L96">				.getPassword());</span>
+		/*
+		 * here we are comparing the hash values of password 
+		 * that we are passing with the password which we are fetching from database
+		 * if password doesn't match exception will be thrown with message
+		 * &quot;LoginService.INVALID_CREDENTIALS&quot;
+		 */ 
+<span class="nc bnc" id="L103" title="All 2 branches missed.">		if (!hashValueOfPassword.equals(loginFromDAO.getPassword())) {</span>
+<span class="nc" id="L104">			throw new Exception(</span>
+					&quot;LoginService.INVALID_CREDENTIALS&quot;);
+		}
+		
+		/* after comparing password if it matches
+		 * we are checking whether account is locked or not
+		 * if its locked then we are throwing exception with message 
+		 * &quot;LoginService.ACCOUNT_LOCKED&quot;
+		 */
+<span class="nc bnc" id="L113" title="All 2 branches missed.">		if (loginFromDAO.getLockedStatus().equals(CustomerLoginLockedStatus.LOCKED)) {</span>
+<span class="nc" id="L114">			throw new Exception(&quot;LoginService.ACCOUNT_LOCKED&quot;);</span>
+		}
+		
+		/*
+		 * after validating everything
+		 * we are fetching customer bean from CustomerDao
+		 * by passing customerId to it
+		 */
+<span class="nc" id="L122">		Customer customer = customerDao.getCustomerByCustomerId(loginFromDAO</span>
+<span class="nc" id="L123">				.getCustomerId());</span>
+
+<span class="nc" id="L125">		return customer;</span>
+	}
+
+	/**
+	 * This method is used to change the password of logged in user. It checks
+	 * the password, newPassword and confirmNewPassword with input field
+	 * validation, if they are in proper format, it checks whether the
+	 * newPassword is matching the confirmNewPassword, then it checks if the old
+	 * password and the new password are same.
+	 * 
+	 * @param customerLogin
+	 * 
+	 * @throws Exception
+	 *             if the password is not in proper format or 
+
+	 *             if the newPassword is not in proper format or
+
+	 *             if the confirmNewPassword is not in proper format or 
+
+	 *             if newPassword is same as old password or
+
+	 *             if confirmNewPassword is not same as newPassword or
+
+	 *             if the current password is not matching the record of logged
+	 *             in user
+	 * @throws NoSuchAlgorithmException
+	 *             if the name of algorithm is incorrect used in password
+	 *             hashing mechanism.
+	 * @throws Exception
+	 */
+	@Override
+	@Transactional(readOnly=false, propagation = Propagation.REQUIRES_NEW)
+	public void changeCustomerPassword(CustomerLogin customerLogin)
+			throws Exception {		
+	
+		/*
+		 * here we are validating the password that is given by the user
+		 * in this we are passing customerLogin class to validateChangePasswordDetails method of
+		 * CustomerLoginValidator class
+		 * if password given by user is not proper exception will be thrown accordingly
+		 **/
+<span class="nc" id="L166">		CustomerLoginValidator.validateChangePasswordDetails(customerLogin);</span>
+		
+		/*
+		 * here we are fetching CustomerLogin class from
+		 * 	customerLoginDao by passing custmerID to getCustomerLoginByCustomerId method of that class
+		 **/
+<span class="nc" id="L172">		CustomerLogin customerLoginFromDao = customerLoginDao</span>
+<span class="nc" id="L173">				.getCustomerLoginByCustomerId(customerLogin.getCustomerId());</span>
+		
+		/*
+		 * here we are comparing the hash values of password 
+		 * that we are passing with the password which we are fetching from database
+		 * if password doesn't match exception will be thrown with message
+		 * &quot;LoginService.INVALID_CREDENTIALS&quot;
+		 * */ 
+<span class="nc bnc" id="L181" title="All 2 branches missed.">		if (!Hashing.getHashValue(customerLogin.getPassword()).equals(</span>
+<span class="nc" id="L182">				customerLoginFromDao.getPassword())) {</span>
+<span class="nc" id="L183">			throw new Exception(&quot;LoginService.INVALID_PASSWORD&quot;);</span>
+		}
+		
+		/*
+		 * here we are validating whether new password is equal to old password
+		 **/ 
+<span class="nc bnc" id="L189" title="All 2 branches missed.">		if (customerLogin.getPassword().equals(customerLogin.getNewPassword())) {</span>
+<span class="nc" id="L190">			throw new Exception(</span>
+					&quot;LoginService.OLD_PASSWORD_NEW_PASSWORD_SAME&quot;);
+		}
+		
+		/*
+		 * here after comparing hash value of passwords we are setting the new value
+		 * and updating it to the database by passing it to dao class
+		 **/
+<span class="nc" id="L198">		customerLogin.setNewPassword(Hashing.getHashValue(customerLogin</span>
+<span class="nc" id="L199">				.getNewPassword()));</span>
+<span class="nc" id="L200">		customerLoginDao.changeCustomerPassword(customerLogin);</span>
+
+<span class="nc" id="L202">	}</span>
+	
+	/**
+	 * This method is used to add a new login details for the newly added 
+	 * Customer  with the data from the model object&lt;br&gt;
+	 *
+	 * it finds the loginName by using entered emailId, i.e. it takes first part of it (before @)
+	 * then it is checked in the database for any usage of the same login name
+	 * if same loginName present then get number of loginNames with same name
+	 * add one to it and append it to the loginName
+	 * 
+	 * populate all the values to the bean and pass it to the database
+	 * 
+	 * @param customer
+	 * 
+	 * @return customerLogin
+	 */
+	@Override
+	@Transactional(readOnly=false, propagation = Propagation.REQUIRES_NEW)
+	public CustomerLogin addCustomerLogin(Customer customer) throws Exception {
+		
+		/*
+		 * here we are getting a customerLogin bean object
+		 **/
+<span class="nc" id="L226">		CustomerLogin customerLogin = new CustomerLogin();</span>
+		
+		/*
+		 * here we are setting the new values to customerLogin 
+		 **/
+<span class="nc" id="L231">		customerLogin.setCustomerId(customer.getCustomerId());</span>
+<span class="nc" id="L232">		customerLogin.setLockedStatus(CustomerLoginLockedStatus.UNLOCKED);</span>
+		
+		/*
+		 * here we are splitting emailId By '@' to get userId from It
+		 **/
+		
+<span class="nc" id="L238">		String loginName = customer.getEmailId().split(&quot;@&quot;)[0];</span>
+		
+<span class="nc bnc" id="L240" title="All 2 branches missed.">		if(loginName.length()&gt;15){</span>
+<span class="nc" id="L241">			loginName = loginName.substring(0, 16);</span>
+		}
+		
+		/*
+		 * here we are checking the availability of user name
+		 * we are passing the login name to checkAvailabilityOfloginName method
+		 * which will return the no of rows with same login name
+		 **/
+<span class="nc" id="L249">		Long noOfCustomersWithSameLoginName = customerLoginDao.checkAvailabilityOfloginName(loginName.toLowerCase());</span>
+		
+		/* here if no customer have same login name then new login name is set */ 
+<span class="nc bnc" id="L252" title="All 2 branches missed.">		if(noOfCustomersWithSameLoginName!=0)</span>
+<span class="nc" id="L253">			loginName +=(noOfCustomersWithSameLoginName+1);</span>
+		
+<span class="nc" id="L255">		String password = loginName.substring(0,1).toUpperCase()+loginName.substring(1).toLowerCase()+&quot;!&quot;+&quot;123&quot;;</span>
+		
+<span class="nc" id="L257">		int i=3;</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">		while(password.length()&lt;=8){</span>
+<span class="nc" id="L259">			password+=(++i);</span>
+		}
+		
+		/*
+		 * here we are setting the login name and password to customerLogin 
+		 **/
+<span class="nc" id="L265">		customerLogin.setLoginName(loginName.toLowerCase());</span>
+<span class="nc" id="L266">		customerLogin.setPassword(password);</span>
+		
+		/*
+		 * here we are adding customer to database by passing the customerLogin bean object
+		 * to customer login dao
+		 **/
+<span class="nc" id="L272">		Integer customerLoginId = customerLoginDao.addNewCustomerLogin(customerLogin);</span>
+		
+<span class="nc" id="L274">		customerLogin.setCustomerLoginId(customerLoginId);</span>
+		
+<span class="nc" id="L276">		return customerLogin;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TellerValidator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.validator</a> &gt; <span class="el_source">TellerValidator.java</span></div><h1>TellerValidator.java</h1><pre class="source lang-java linenums">package com.edubank.validator;
+
+import com.edubank.model.Teller;
+
+/**
+ * The TellerValidator class is a utility class having static methods, used to
+ * validate the data entered from the login form of teller. &lt;br&gt;
+ * &lt;i&gt;Example:-&lt;/i&gt; Login Name, Password
+ * 
+ * @author ETA_JAVA
+ *
+ */
+<span class="nc" id="L13">public class TellerValidator {</span>
+
+	/**
+	 * This method validates loginName and password whether they are in proper
+	 * format or not. Valid format:- &lt;h4&gt;loginName&lt;/h4&gt; should start with 'T' 
+	 * followed by 4 digits.
+	 * 
+	 * &lt;h4&gt;password&lt;/h4&gt; should be of 8 to 20 characters, should have at least
+	 * one upper case, one lower case, one number and one special character
+	 * among {!, #, $, %, ^, &amp;, *, (, )}
+	 *
+	 * @param teller
+	 * 
+	 * @throws Exception
+	 *             with message &lt;i&gt;TellerValidator.INVALID_CREDENTIALS&lt;/i&gt;
+	 *             if the loginName is not matching the above format
+	 * 				or
+	 *             with message &lt;i&gt;TellerValidator.INVALID_CREDENTIALS&lt;/i&gt; if
+	 *             the password is not matching the above format
+	 */
+	
+	public static void validate(Teller teller) throws Exception
+	{
+		/*
+		 * here teller login name is validated
+		 */
+<span class="fc bfc" id="L39" title="All 2 branches covered.">		if (!validateLoginName(teller.getLoginName())) {</span>
+<span class="fc" id="L40">			throw new Exception(&quot;TellerValidator.INVALID_CREDENTIALS&quot;);</span>
+		}
+	
+		/*
+		 * here teller password is validated
+		 */
+<span class="fc bfc" id="L46" title="All 2 branches covered.">		if (!validatePassword(teller.getPassword())) {</span>
+<span class="fc" id="L47">			throw new Exception(&quot;TellerValidator.INVALID_CREDENTIALS&quot;);</span>
+		}
+
+<span class="fc" id="L50">	}</span>
+
+	/**
+	 * This method is used to validate the format of password&lt;br&gt;
+	 * &lt;b&gt;password&lt;/b&gt; should be of 8 to 20 characters, should have at
+	 *         least one upper case, one lower case, one number and one special
+	 *         character among {!, #, $, %, ^, &amp;, *, (, )}
+	 *         
+	 * @param password
+	 * 
+	 * @return true if the password is matching the above conditions, else
+	 *         false. &lt;br&gt;
+	 *         
+	 */
+	public static boolean validatePassword(String password) {
+<span class="fc" id="L65">		boolean flag = false;</span>
+		
+		/*
+		 * this condition checks the length of password */
+<span class="fc bfc" id="L69" title="All 4 branches covered.">		if (password.length() &gt;= 8 &amp;&amp; password.length() &lt;= 20) {</span>
+			
+		/*
+		 * this condition checks if password has any upper case character or not */
+<span class="fc bfc" id="L73" title="All 2 branches covered.">			if (password.matches(&quot;.*[A-Z].*&quot;)) {</span>
+		/*
+		 * this condition check for lower case character in password */
+<span class="fc bfc" id="L76" title="All 2 branches covered.">				if (password.matches(&quot;.*[a-z].*&quot;)) {</span>
+		/*
+		 * this condition check for lower case character in password */
+<span class="fc bfc" id="L79" title="All 2 branches covered.">					if (password.matches(&quot;.*[0-9].*&quot;)) {</span>
+		/*
+		 * this condition check for special characters {!, #, $, %, ^, &amp;, *, (, )} in password */
+<span class="fc bfc" id="L82" title="All 2 branches covered.">						if (password.matches(&quot;.*(!|#|\\$|%|\\^|&amp;|\\*|\\(|\\)).*&quot;)) {</span>
+<span class="fc" id="L83">							flag = true;</span>
+						}
+					}
+				}
+			}
+		}
+<span class="fc" id="L89">		return flag;</span>
+	}
+	
+	/**
+	 * This method validates loginName whether they are in proper
+	 * format or not. Valid format:- &lt;h4&gt;loginName&lt;/h4&gt; should start with 'T' 
+	 * followed by 4 digits.
+	 *
+	 * @param loginName
+	 * 
+	 * @return true if the login name is matching the above conditions, else
+	 *         false. &lt;br&gt;
+	 */
+	public static boolean validateLoginName(String loginName) {
+
+<span class="fc" id="L104">		Boolean flag = false;</span>
+		
+		/*
+		 * this condition check whether login name start with 'T' 
+		 * followed by 4 digits. */
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		if (loginName.matches(&quot;(T)[0-9]{4}&quot;))</span>
+<span class="fc" id="L110">			flag = true;</span>
+
+<span class="fc" id="L112">		return flag;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

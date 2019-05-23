@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CustomerValidator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.validator</a> &gt; <span class="el_source">CustomerValidator.java</span></div><h1>CustomerValidator.java</h1><pre class="source lang-java linenums">package com.edubank.validator;
+
+import java.time.LocalDate;
+
+import com.edubank.model.Customer;
+
+
+/**
+ * The CustomerValidator class is a utility class having static methods, used to
+ * validate the data entered from the add customer form. &lt;br&gt;
+ * &lt;i&gt;Example:-&lt;/i&gt; name, email, date of birth
+ * 
+ * @author ETA_JAVA
+ *
+ */
+<span class="nc" id="L16">public class CustomerValidator {</span>
+
+	
+	/**
+	 * This method validates name, email and age using date of birth whether they are in proper
+	 * format/valid or not. Valid format:- &lt;h4&gt;Name&lt;/h4&gt; should contain only
+	 * alphabets and spaces.
+	 * 
+	 * &lt;h4&gt;email&lt;/h4&gt; should contain @ and followed by at least one '.'
+	 *
+	 * &lt;h4&gt;date of birth&lt;/h4&gt; age of the customer should be greater than 18
+	 *
+	 * @param customer
+	 * 
+	 * @throws Exception
+	 *             with message &lt;i&gt;CustomerValidator.INVALID_CUSTOMER_NAME&lt;/i&gt;
+	 *             if the name is not matching the above format
+	 *				or
+	 *             with message &lt;i&gt;CustomerValidator.INVALID_EMAIL&lt;/i&gt; if
+	 *             the email is not matching the above format
+	 * 				or
+	 *             with message &lt;i&gt;CustomerValidator.INVALID_AGE_OF_CUSTOMER&lt;/i&gt; if
+	 *             the email is not matching the above format
+	 */
+
+	public static void validateCustomerDetails(Customer customer) throws Exception
+	{
+
+<span class="fc bfc" id="L44" title="All 2 branches covered.">		if (!validateName(customer.getName())) {</span>
+<span class="fc" id="L45">			throw new Exception(&quot;CustomerValidator.INVALID_CUSTOMER_NAME&quot;);</span>
+		}
+<span class="fc bfc" id="L47" title="All 2 branches covered.">		if (!validateEmail(customer.getEmailId())) {</span>
+<span class="fc" id="L48">			throw new Exception(&quot;CustomerValidator.INVALID_EMAIL&quot;);</span>
+		}
+<span class="fc bfc" id="L50" title="All 2 branches covered.">		if (!validateAgeFromDOB(customer.getDateOfBirth())) {</span>
+<span class="fc" id="L51">			throw new Exception(&quot;CustomerValidator.INVALID_AGE_OF_CUSTOMER&quot;);</span>
+		}
+<span class="fc" id="L53">	}</span>
+
+	/**
+	 * This method is used to validate the age of customer&lt;br&gt;
+	 * &lt;h4&gt;date of birth&lt;/h4&gt; age of the customer should be greater than 18
+	 * 
+	 * @param dateOfBirth
+	 * 
+	 * @return true if the age of the customer should be greater than 18, else
+	 *         false. &lt;br&gt;
+	 * 
+	 */
+	public static boolean validateAgeFromDOB(LocalDate dateOfBirth) {
+<span class="fc" id="L66">		boolean flag = false;</span>
+<span class="fc" id="L67">		LocalDate date = LocalDate.now();</span>
+<span class="fc" id="L68">		date= date.minusYears(18);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">		if (dateOfBirth.isBefore(date)) {</span>
+<span class="fc" id="L70">			flag = true;</span>
+		}
+<span class="fc" id="L72">		return flag;</span>
+	}
+
+	/**
+	 * This method is used to validate the format of mail&lt;br&gt;
+	 * &lt;h4&gt;email&lt;/h4&gt; should contain @ and followed by at least one '.'
+	 * 
+	 * @param emailId
+	 * 
+	 * @return true if the email is matching the above conditions, else
+	 *         false. &lt;br&gt;
+	 * 
+	 */
+	public static boolean validateEmail(String emailId) {
+<span class="fc" id="L86">		boolean flag = false;</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">		if (emailId.matches(&quot;[^@]+@[^@]+[.][^@]+&quot;)) {</span>
+<span class="fc" id="L88">			flag = true;</span>
+		}
+<span class="fc" id="L90">		return flag;</span>
+	}
+
+	/**
+	 * This method is used to validate the format of name&lt;br&gt;
+	 * &lt;h4&gt;Name&lt;/h4&gt; should contain only alphabets and spaces.
+	 * 
+	 * @param name
+	 * 
+	 * @return true if the name is matching the above conditions, else
+	 *         false. &lt;br&gt;
+	 * 
+	 */
+	public static boolean validateName(String name) {
+<span class="fc" id="L104">		boolean flag = false;</span>
+<span class="pc bpc" id="L105" title="1 of 4 branches missed.">		if (name.matches(&quot;[A-Za-z ]+&quot;) &amp;&amp; !name.matches(&quot;[ ]*&quot;)) {</span>
+<span class="fc" id="L106">			flag = true;</span>
+		}
+<span class="fc" id="L108">		return flag;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

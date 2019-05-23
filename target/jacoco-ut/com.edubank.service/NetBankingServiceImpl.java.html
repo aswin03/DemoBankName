@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>NetBankingServiceImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.service</a> &gt; <span class="el_source">NetBankingServiceImpl.java</span></div><h1>NetBankingServiceImpl.java</h1><pre class="source lang-java linenums">package com.edubank.service;
+
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.edubank.dao.NetBankingDAO;
+import com.edubank.model.Transaction;
+import com.edubank.model.TransactionType;
+
+/**
+ * This class contains the methods for business logics related to Net Banking
+ * module, like payByNetBanking.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Service(value = &quot;netBankingService&quot;)
+@Transactional(readOnly = true)
+<span class="nc" id="L23">public class NetBankingServiceImpl implements NetBankingService {</span>
+
+	@Autowired
+	private NetBankingDAO netBankingDAO;
+
+	/**
+	 * This method is used to make payment by net banking, It sets the required
+	 * details to the transaction object and sends to the updated object to the
+	 * corresponding dao.
+	 * 
+	 * @param transaction
+	 * 
+	 * @return transactionId
+	 * 
+	 * @throws Exception
+	 */
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+	public Long payByNetBanking(Transaction transaction) throws Exception {
+
+<span class="nc" id="L43">		transaction.setInfo(&quot;From:- Account To:- AmigoWallet, Reason:- Payment&quot;);</span>
+<span class="nc" id="L44">		transaction.setType(TransactionType.DEBIT);</span>
+<span class="nc" id="L45">		transaction.setTransactionDateTime(LocalDateTime.now());</span>
+<span class="nc" id="L46">		transaction.setTransactionMode(&quot;Internet-Banking&quot;);</span>
+
+		/*
+		 * the following code is to  persist a transaction record and update
+		 * the amount in the corresponding account.
+		 */
+<span class="nc" id="L52">		Long transactionId = netBankingDAO.payByNetBanking(transaction);</span>
+
+<span class="nc" id="L54">		return transactionId;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>AccountDAOImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.dao</a> &gt; <span class="el_source">AccountDAOImpl.java</span></div><h1>AccountDAOImpl.java</h1><pre class="source lang-java linenums">package com.edubank.dao;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.edubank.entity.AccountCustomerMappingEntity;
+import com.edubank.entity.AccountEntity;
+import com.edubank.entity.BranchEntity;
+import com.edubank.entity.CustomerEntity;
+import com.edubank.model.Account;
+import com.edubank.model.AccountCustomerMapping;
+import com.edubank.model.AccountCustomerMappingStatus;
+import com.edubank.model.Branch;
+import com.edubank.model.Customer;
+import com.edubank.utility.ApplicationConstants;
+
+/**
+ * This is a DAO class contains the methods for persistence logics related to
+ * Account module, verifyAccountDetail, getAccountByCustomerId
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Repository(value = &quot;accountDAO&quot;)
+<span class="nc" id="L33">public class AccountDAOImpl implements AccountDAO {</span>
+	
+	/** This is a spring auto-wired attribute used to create data base sessions */
+	@Autowired
+	SessionFactory sessionFactory;
+
+	/**
+	 * @see com.edubank.dao.AccountDAO#getBranchDetails(java.lang.Integer)
+	 */
+	@Override
+	public Branch getBranchDetails(Integer branchId) throws Exception{
+<span class="nc" id="L44">		Branch branch = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L54">		Session session = sessionFactory.getCurrentSession();</span>
+
+		/*
+		 * here we are fetching the branchEntity where it's equal to branchId
+		 * */
+
+<span class="nc" id="L60">		BranchEntity branchEntity = session.get(BranchEntity.class, branchId);</span>
+
+		/*
+		 * here we are setting values to bean class from entity class only if
+		 * the entity class exists
+		 **/
+<span class="nc bnc" id="L66" title="All 2 branches missed.">		if (branchEntity != null) {</span>
+<span class="nc" id="L67">			branch =new Branch();</span>
+<span class="nc" id="L68">			branch.setBranchId(branchEntity.getBranchId());</span>
+<span class="nc" id="L69">			branch.setBranchName(branchEntity.getBranchName());</span>
+<span class="nc" id="L70">			branch.setIfsc(branchEntity.getIfsc());</span>
+<span class="nc" id="L71">			branch.setBranchCode(branchEntity.getBranchCode());</span>
+		}
+
+<span class="nc" id="L74">		return branch;</span>
+	}
+
+	/**
+	 * This method is used to fetch the AccountCustomerMapping object
+	 * corresponding to customerId
+	 * 
+	 * @param customerId
+	 * 
+	 * @return accountCustomerMapping
+	 */
+	@Override
+	public AccountCustomerMapping getAccountCustomerMappingByCustomerId(
+			Integer customerId) throws Exception {
+
+<span class="nc" id="L89">		AccountCustomerMapping accountCustomerMapping = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L99">		Session session = sessionFactory.getCurrentSession();</span>
+
+		/*
+		 * CriteriaBuilder Used to construct criteria queries, compound
+		 * selections, expressions, predicates, orderings. here we are fetching
+		 * value from database using criteria builder equal method this will
+		 * return the no of values in the database on the given condition
+		 **/
+<span class="nc" id="L107">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L108">		CriteriaQuery&lt;AccountCustomerMappingEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L109">				.createQuery(AccountCustomerMappingEntity.class);</span>
+
+<span class="nc" id="L111">		Root&lt;AccountCustomerMappingEntity&gt; root = criteriaQuery</span>
+<span class="nc" id="L112">				.from(AccountCustomerMappingEntity.class);</span>
+
+		/*
+		 * here we are fetching the AccountCustomerMappingEntity where it's
+		 * equal to customerId
+		 **/
+<span class="nc" id="L118">		criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;customerId&quot;), customerId));</span>
+
+<span class="nc" id="L120">		AccountCustomerMappingEntity accountCustomerMappingEntity = session</span>
+<span class="nc" id="L121">				.createQuery(criteriaQuery).uniqueResult();</span>
+
+		/*
+		 * here we are setting values to bean class from entity class only if
+		 * the entity class exists
+		 **/
+<span class="nc bnc" id="L127" title="All 2 branches missed.">		if (accountCustomerMappingEntity != null) {</span>
+			
+<span class="nc" id="L129">			accountCustomerMapping = new AccountCustomerMapping();</span>
+<span class="nc" id="L130">			accountCustomerMapping</span>
+<span class="nc" id="L131">					.setAccountCustomerMappingId(accountCustomerMappingEntity</span>
+<span class="nc" id="L132">							.getAccountCustomerMappingId());</span>
+<span class="nc" id="L133">			accountCustomerMapping</span>
+<span class="nc" id="L134">					.setAccountNumber(accountCustomerMappingEntity</span>
+<span class="nc" id="L135">							.getAccountNumber());</span>
+<span class="nc" id="L136">			accountCustomerMapping.setCustomerId(accountCustomerMappingEntity</span>
+<span class="nc" id="L137">					.getCustomerId());</span>
+<span class="nc" id="L138">			accountCustomerMapping.setMappingStatus(accountCustomerMappingEntity</span>
+<span class="nc" id="L139">					.getMappingStatus());</span>
+		}
+
+<span class="nc" id="L142">		return accountCustomerMapping;</span>
+
+	}
+
+	/**
+	 * This method is used to fetch the account object corresponding to
+	 * accountNumber
+	 * 
+	 * @param accountNumber
+	 * 
+	 * @return account
+	 */
+	@Override
+	public Account getAccountByAccountNumber(String accountNumber) throws Exception{
+
+<span class="nc" id="L157">		Account account = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L167">		Session session = sessionFactory.getCurrentSession();</span>
+
+		/*
+		 * CriteriaBuilder Used to construct criteria queries, compound
+		 * selections, expressions, predicates, orderings. here we are fetching
+		 * value from database using criteria builder equal method this will
+		 * return the no of values in the database on the given condition
+		 **/
+<span class="nc" id="L175">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L176">		CriteriaQuery&lt;AccountEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L177">				.createQuery(AccountEntity.class);</span>
+
+<span class="nc" id="L179">		Root&lt;AccountEntity&gt; root = criteriaQuery.from(AccountEntity.class);</span>
+
+<span class="nc" id="L181">		criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;accountNumber&quot;), accountNumber));</span>
+
+<span class="nc" id="L183">		AccountEntity accountEntity = session.createQuery(criteriaQuery)</span>
+<span class="nc" id="L184">				.uniqueResult();</span>
+
+		/*
+		 * here we are setting values to bean class from entity class only if
+		 * the entity class exists
+		 **/
+<span class="nc bnc" id="L190" title="All 2 branches missed.">		if (accountEntity != null) {</span>
+<span class="nc" id="L191">			account = new Account();</span>
+<span class="nc" id="L192">			account.setAccountNumber(accountEntity.getAccountNumber());</span>
+<span class="nc" id="L193">			account.setBalance(accountEntity.getBalance());</span>
+<span class="nc" id="L194">			account.setBranchId(accountEntity.getBranchId());</span>
+<span class="nc" id="L195">			account.setAccountStatus(accountEntity.getAccountStatus());</span>
+<span class="nc" id="L196">			account.setLockedBalance(accountEntity.getLockedBalance());</span>
+		}
+
+<span class="nc" id="L199">		return account;</span>
+	}
+
+	/**
+	 * This method is used to persist the new account details for the newly
+	 * added Customer with the data from the model object&lt;br&gt;
+	 *
+	 * populate all the values to the entity from bean and persist using save()
+	 * method
+	 * 
+	 * @param account
+	 * 
+	 * @return accountNumber
+	 */
+	@Override
+	public String addAccount(Account account) throws Exception {
+
+<span class="nc" id="L216">		String accountNumber = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L226">		Session session = sessionFactory.getCurrentSession();</span>
+
+		/*
+		 * here we are creating an accountEntity object
+		 **/		
+<span class="nc" id="L231">		AccountEntity accountEntity = new AccountEntity();</span>
+
+		/*
+		 * here we are setting value from bean to entity class
+		 **/
+<span class="nc" id="L236">		accountEntity.setAccountNumber(getNextAccountNumber());</span>
+<span class="nc" id="L237">		accountEntity.setBalance(account.getBalance());</span>
+<span class="nc" id="L238">		accountEntity.setBranchId(account.getBranchId());</span>
+<span class="nc" id="L239">		accountEntity.setAccountStatus(account.getAccountStatus());</span>
+<span class="nc" id="L240">		accountEntity.setLockedBalance(0d);</span>
+
+		/*
+		 * here we are adding the Entity to table using save method save method
+		 * will return primary key of that row
+		 */
+<span class="nc" id="L246">		session.save(accountEntity);</span>
+
+		/*
+		 * If we want the changes done to an entity which is in manage
+		 * state(Application context) to be reflected in the database, then the
+		 * transaction must be committed.
+		 */
+
+<span class="nc" id="L254">		accountNumber = accountEntity.getAccountNumber();</span>
+		
+<span class="nc" id="L256">		return accountNumber;</span>
+	}
+
+	/**
+	 * This is a supporting method for addAccount method&lt;br&gt;
+	 * It is used to get the next customer accountNumber
+	 * 
+	 * @return String
+	 */
+	private String getNextAccountNumber() {
+
+<span class="nc" id="L267">		String nextAccountNumber = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L277">		Session session = sessionFactory.getCurrentSession();</span>
+
+		/*
+		 * CriteriaBuilder Used to construct criteria queries, compound
+		 * selections, expressions, predicates, orderings. here we are fetching
+		 * value from database using criteria builder this will return the
+		 * values in the database on the given condition
+		 **/
+<span class="nc" id="L285">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L286">		CriteriaQuery&lt;AccountEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L287">				.createQuery(AccountEntity.class);</span>
+
+<span class="nc" id="L289">		Root&lt;AccountEntity&gt; root = criteriaQuery.from(AccountEntity.class);</span>
+
+		/*
+		 * this will return us a list of AccountEntity sorted in decreasing
+		 * order of accountNumber
+		 **/
+<span class="nc" id="L295">		criteriaQuery.orderBy(criteriaBuilder.desc(root.get(&quot;accountNumber&quot;)));</span>
+<span class="nc" id="L296">		List&lt;AccountEntity&gt; entities = session.createQuery(criteriaQuery).getResultList();</span>
+
+		/*
+		 * here we are checking if the their are no customer in db then we are
+		 * adding the default if their are accounts in db then we are appending
+		 * account no with some business logic
+		 **/
+		String accountNumber;
+<span class="nc bnc" id="L304" title="All 2 branches missed.">		if (entities.isEmpty()) {</span>
+<span class="nc" id="L305">			accountNumber = ApplicationConstants.FIRST_ACCOUNT_NUMBER;</span>
+		} else {
+<span class="nc" id="L307">			accountNumber = entities.get(0).getAccountNumber();</span>
+		}
+<span class="nc" id="L309">		nextAccountNumber = (Long.parseLong(accountNumber) + (int) (Math</span>
+<span class="nc" id="L310">				.random() * 100)) + &quot;&quot;;</span>
+
+<span class="nc" id="L312">		return nextAccountNumber;</span>
+	}
+
+	/**
+	 * This method is used to persist a mapping record i.e. customerId and the
+	 * account number to be mapped&lt;br&gt;
+	 *
+	 * populate the entity using parameters and persist it using save() method
+	 *
+	 * @param customerId
+	 *            , accountNumber
+	 * @return accountCustomerMappingId
+	 */
+	@Override
+	public Integer addAccountCustomerMapping(Integer customerId,
+			String accountNumber) throws Exception {
+
+<span class="nc" id="L329">		Integer mappingId = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L339">		Session session = sessionFactory.getCurrentSession();</span>
+
+		/*
+		 * here we are creating the entity class then we are setting the values
+		 * from bean class 
+		 **/
+<span class="nc" id="L345">		AccountCustomerMappingEntity mappingEntity = new AccountCustomerMappingEntity();</span>
+
+<span class="nc" id="L347">		mappingEntity.setAccountNumber(accountNumber);</span>
+<span class="nc" id="L348">		mappingEntity.setCustomerId(customerId);</span>
+<span class="nc" id="L349">		mappingEntity.setMappingStatus(AccountCustomerMappingStatus.ACTIVE);</span>
+
+		/*
+		 * here we are adding the Entity to table using save method save method
+		 * will return primary key of that row
+		 */
+<span class="nc" id="L355">		mappingId = (Integer) session.save(mappingEntity);</span>
+
+		/*
+		 * If we want the changes done to an entity which is in manage
+		 * state(Application context) to be reflected in the database, then the
+		 * transaction must be committed.
+		 */
+
+<span class="nc" id="L363">		return mappingId;</span>
+	}
+
+	/**
+	 * This method is used to credit the amount to the customer account&lt;br&gt;
+	 * It adds the amount to existing balance
+	 * 
+	 * @param accountNumber
+	 *            ,amount
+	 */
+	@Override
+	public void creditMoney(String accountNumber, Double amount) throws Exception{
+
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L385">		Session session = sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L387">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L388">		CriteriaQuery&lt;AccountEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L389">				.createQuery(AccountEntity.class);</span>
+
+<span class="nc" id="L391">		Root&lt;AccountEntity&gt; root = criteriaQuery.from(AccountEntity.class);</span>
+
+<span class="nc" id="L393">		criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;accountNumber&quot;), accountNumber));</span>
+
+<span class="nc" id="L395">		AccountEntity accountEntity = session.createQuery(criteriaQuery)</span>
+<span class="nc" id="L396">				.uniqueResult();</span>
+<span class="nc" id="L397">		Double accountBalance = accountEntity.getBalance();</span>
+<span class="nc" id="L398">		accountEntity.setBalance(accountBalance + amount);</span>
+
+		/*
+		 * If we want the changes done to an entity which is in manage
+		 * state(Application context) to be reflected in the database, then the
+		 * transaction must be committed.
+		 */
+
+<span class="nc" id="L406">	}</span>
+
+	/**
+	 * This method is used to fetch the accountNumber using the mappingId
+	 * 
+	 * @param mappingId
+	 * 
+	 * @return accountNumber
+	 */
+	@Override
+	public String getAccountNumberForMappingId(Integer mappingId)  throws Exception{
+
+<span class="nc" id="L418">		String accountNumber = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L428">		Session session = sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L430">		AccountCustomerMappingEntity entity = session.get(</span>
+				AccountCustomerMappingEntity.class, mappingId);
+
+<span class="nc" id="L433">		accountNumber = entity.getAccountNumber();</span>
+
+<span class="nc" id="L435">		return accountNumber;</span>
+	}
+
+	/**
+	 * This method is used to debit the money from the given account
+	 * 
+	 * @param accountNumber, amount
+	 *            
+	 */
+	@Override
+	public void debitMoney(String accountNumber, Double amount) throws Exception {
+
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L456">		Session session = sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L458">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L459">		CriteriaQuery&lt;AccountEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L460">				.createQuery(AccountEntity.class);</span>
+
+<span class="nc" id="L462">		Root&lt;AccountEntity&gt; root = criteriaQuery.from(AccountEntity.class);</span>
+
+<span class="nc" id="L464">		criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;accountNumber&quot;), accountNumber));</span>
+
+<span class="nc" id="L466">		AccountEntity accountEntity = session.createQuery(criteriaQuery)</span>
+<span class="nc" id="L467">				.uniqueResult();</span>
+
+<span class="nc" id="L469">		Double balance = accountEntity.getBalance();</span>
+<span class="nc" id="L470">		accountEntity.setBalance(balance - amount);</span>
+		
+		/*
+		 * If we want the changes done to an entity which is in manage
+		 * state(Application context) to be reflected in the database, then the
+		 * transaction must be committed.
+		 */
+
+<span class="nc" id="L478">	}</span>
+
+	/**
+	 * @see com.edubank.dao.AccountDAO#getAccountCustomerMappingByAccountNumber(java.lang.String)
+	 */
+	@Override
+	public AccountCustomerMapping getAccountCustomerMappingByAccountNumber(
+			String accountNumber) throws Exception {
+<span class="nc" id="L486">		AccountCustomerMapping accountCustomerMapping = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L496">		Session session = sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L498">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L499">		CriteriaQuery&lt;AccountCustomerMappingEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L500">				.createQuery(AccountCustomerMappingEntity.class);</span>
+
+<span class="nc" id="L502">		Root&lt;AccountCustomerMappingEntity&gt; root = criteriaQuery</span>
+<span class="nc" id="L503">				.from(AccountCustomerMappingEntity.class);</span>
+
+<span class="nc" id="L505">		criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;accountNumber&quot;), accountNumber));</span>
+
+<span class="nc" id="L507">		AccountCustomerMappingEntity accountCustomerMappingEntity = session</span>
+<span class="nc" id="L508">				.createQuery(criteriaQuery).uniqueResult();</span>
+
+<span class="nc bnc" id="L510" title="All 2 branches missed.">		if (accountCustomerMappingEntity != null) {</span>
+			
+<span class="nc" id="L512">			accountCustomerMapping =new AccountCustomerMapping();</span>
+<span class="nc" id="L513">			accountCustomerMapping</span>
+<span class="nc" id="L514">					.setAccountCustomerMappingId(accountCustomerMappingEntity</span>
+<span class="nc" id="L515">							.getAccountCustomerMappingId());</span>
+<span class="nc" id="L516">			accountCustomerMapping</span>
+<span class="nc" id="L517">					.setAccountNumber(accountCustomerMappingEntity</span>
+<span class="nc" id="L518">							.getAccountNumber());</span>
+<span class="nc" id="L519">			accountCustomerMapping.setCustomerId(accountCustomerMappingEntity</span>
+<span class="nc" id="L520">					.getCustomerId());</span>
+<span class="nc" id="L521">			accountCustomerMapping.setMappingStatus(accountCustomerMappingEntity</span>
+<span class="nc" id="L522">					.getMappingStatus());</span>
+		}
+
+<span class="nc" id="L525">		return accountCustomerMapping;</span>
+
+	}
+
+	/**
+	 * @see com.edubank.dao.AccountDAO#creditMoneyToAccount(java.lang.String,
+	 *      java.lang.Double)
+	 */
+	@Override
+	public Double creditMoneyToAccount(String accountNumber, Double amount) throws Exception {
+<span class="nc" id="L535">		Double updatedBalance = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L545">		Session session = sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L547">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L548">		CriteriaQuery&lt;AccountEntity&gt; criteriaQuery = criteriaBuilder</span>
+<span class="nc" id="L549">				.createQuery(AccountEntity.class);</span>
+
+<span class="nc" id="L551">		Root&lt;AccountEntity&gt; rootGet = criteriaQuery.from(AccountEntity.class);</span>
+
+<span class="nc" id="L553">		criteriaQuery.where(criteriaBuilder.equal(rootGet.get(&quot;accountNumber&quot;),</span>
+				accountNumber));
+
+<span class="nc" id="L556">		AccountEntity accountEntity = session.createQuery(criteriaQuery)</span>
+<span class="nc" id="L557">				.uniqueResult();</span>
+
+<span class="nc" id="L559">		Integer rowsUpdated = 0;</span>
+<span class="nc bnc" id="L560" title="All 2 branches missed.">		if (accountEntity != null) {</span>
+<span class="nc" id="L561">			updatedBalance = accountEntity.getBalance() + amount;</span>
+<span class="nc" id="L562">			accountEntity.setBalance(updatedBalance);</span>
+<span class="nc" id="L563">			rowsUpdated++;</span>
+		}
+
+		/*
+		 * rowsUpdated value will remain Zero if account does not exist with the
+		 * given account number. If account does not exist null is being
+		 * returned
+		 */
+<span class="nc bnc" id="L571" title="All 2 branches missed.">		if (rowsUpdated == 0)</span>
+<span class="nc" id="L572">			return null;</span>
+
+<span class="nc" id="L574">		return updatedBalance;</span>
+	}
+
+	/**
+	 * This method is used to fetch balance of the given account
+	 * 
+	 * @param accountNumber
+	 * 
+	 * @return balance
+	 */
+	@Override
+	public Double getBalanceOfAccountNumber(String accountNumber) throws Exception {
+
+<span class="nc" id="L587">		Double balance = null;</span>
+
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L597">		Session session = sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L599">		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L600">		CriteriaQuery&lt;Double&gt; criteriaQuery = criteriaBuilder.createQuery(Double.class);</span>
+
+<span class="nc" id="L602">		Root&lt;AccountEntity&gt; root = criteriaQuery.from(AccountEntity.class);</span>
+
+<span class="nc" id="L604">		criteriaQuery.select(root.get(&quot;balance&quot;));</span>
+<span class="nc" id="L605">		criteriaQuery.where(criteriaBuilder.equal(root.get(&quot;accountNumber&quot;), accountNumber));</span>
+
+<span class="nc" id="L607">		balance = session.createQuery(criteriaQuery).uniqueResult();</span>
+
+<span class="nc" id="L609">		return balance;</span>
+
+	}
+	
+	/**
+	 * This method is used to get a Customer model corresponding to its
+	 * customerId&lt;br&gt;
+	 * It uses session.get() method to interact with database for fetching the
+	 * data
+	 * 
+	 * @param customerId
+	 * 
+	 * @return Customer
+	 */
+	@Override
+	public Customer getCustomerByCustomerId(Integer customerId) throws Exception {
+
+<span class="nc" id="L626">		Customer customer = null;</span>
+		
+		/*
+		 * This is one of the way to get the session from sessionFactory,
+		 * getCurrentSession() returns a session bound to a context - you don't
+		 * need to close this. It creates a new Session if not exists, else use
+		 * same session which is in current spring context. You do not need to
+		 * flush and close session objects, it will be automatically taken care
+		 * by spring internally.
+		 */
+<span class="nc" id="L636">		Session session = sessionFactory.getCurrentSession();</span>
+
+			/*
+			 * here we are fetching the entity from database on the given
+			 * condition
+			 **/
+<span class="nc" id="L642">			CustomerEntity customerEntity = session.get(CustomerEntity.class,</span>
+					customerId);
+			
+			/* if we receive the entity then
+			 * we are creating the bean object
+			 * then setting the values from entity
+			 * to bean object
+			 **/
+<span class="nc bnc" id="L650" title="All 2 branches missed.">			if (customerEntity != null) {</span>
+<span class="nc" id="L651">				customer = new Customer();</span>
+<span class="nc" id="L652">				customer.setCustomerId(customerEntity.getCustomerId());</span>
+<span class="nc" id="L653">				customer.setEmailId(customerEntity.getEmailId());</span>
+<span class="nc" id="L654">				customer.setName(customerEntity.getName());</span>
+<span class="nc" id="L655">				customer.setDateOfBirth(customerEntity.getDateOfBirth());</span>
+
+			}
+
+<span class="nc" id="L659">		return customer;</span>
+
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

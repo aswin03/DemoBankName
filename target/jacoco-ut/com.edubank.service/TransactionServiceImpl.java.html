@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TransactionServiceImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.service</a> &gt; <span class="el_source">TransactionServiceImpl.java</span></div><h1>TransactionServiceImpl.java</h1><pre class="source lang-java linenums">package com.edubank.service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.edubank.dao.TransactionDAO;
+import com.edubank.model.Transaction;
+import com.edubank.validator.TransactionValidator;
+
+/**
+ * This is a service class having methods which contain business logic related
+ * to Transactions.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Service(&quot;transactionService&quot;)
+@Transactional(readOnly = true)
+<span class="nc" id="L25">public class TransactionServiceImpl implements TransactionService {</span>
+
+	@Autowired
+	private TransactionDAO transactionDao;
+
+	/**
+	 * This method is used to add the transaction
+	 * 
+	 * @param transaction, createdBy
+	 * 
+	 * @return transaction
+	 */
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+	public Transaction addTransaction(Transaction transaction, String createdBy)throws Exception {
+
+<span class="nc" id="L41">		transaction.setTransactionDateTime(LocalDateTime.now());</span>
+
+		/* the following code is used to persist the transaction in database */
+<span class="nc" id="L44">		Long transactionId = transactionDao.addTransaction(transaction,</span>
+				createdBy);
+
+<span class="nc" id="L47">		transaction.setTransactionId(transactionId);</span>
+<span class="nc" id="L48">		return transaction;</span>
+	}
+
+	/**
+	 * @see com.edubank.service.TransactionService#getLastThirtyDaysTransactionsForAccount(java.lang.String)
+	 */
+	@Override
+	public List&lt;Transaction&gt; getLastThirtyDaysTransactionsForAccount(
+			String accountNumber)
+			throws Exception {
+<span class="nc" id="L58">		LocalDate fromDate = LocalDate.now();</span>
+<span class="nc" id="L59">		fromDate = fromDate.minusDays(29);</span>
+<span class="nc" id="L60">		LocalDate toDate = LocalDate.now();</span>
+
+		/*
+		 * This code is used to retrieve transactions of the passed account
+		 * number between from date and to date in descending order of the
+		 * transaction date time. If transactions are not there then it returns
+		 * null.
+		 */
+<span class="nc" id="L68">		List&lt;Transaction&gt; transactionsList = transactionDao</span>
+<span class="nc" id="L69">				.getAccountTransactionsForDateRange(accountNumber, fromDate,</span>
+						toDate);
+
+		/* if transaction is not their between the dates exception is thrown */
+<span class="nc bnc" id="L73" title="All 2 branches missed.">		if (transactionsList == null)</span>
+<span class="nc" id="L74">			throw new Exception(</span>
+					&quot;TransactionService.NO_TRANSACTIONS_IN_LAST_THIRTY_DAYS&quot;);
+
+<span class="nc" id="L77">		return transactionsList;</span>
+	}
+
+	/** 
+	 * @see com.edubank.service.TransactionService#getAccountTransactionsForDateRange
+	 *      (java.lang.String, java.time.LocalDate, java.time.LocalDate)
+	 */
+	@Override
+	public List&lt;Transaction&gt; getAccountTransactionsForDateRange(
+			String accountNumber, LocalDate fromDate, LocalDate toDate)
+			throws Exception {
+		
+		/*
+		 * this code validates the passed transaction date range and throws
+		 * exception if validation fails.
+		 */
+
+<span class="nc" id="L94">		TransactionValidator.validateTransactionsDateRange(fromDate, toDate);</span>
+
+<span class="nc" id="L96">		List&lt;Transaction&gt; tranList = transactionDao</span>
+<span class="nc" id="L97">				.getAccountTransactionsForDateRange(accountNumber, fromDate,</span>
+						toDate);
+
+<span class="nc bnc" id="L100" title="All 2 branches missed.">		if (tranList == null)</span>
+<span class="nc" id="L101">			throw new Exception(</span>
+					&quot;TransactionService.NO_TRANSACTIONS_IN_DATE_RANGE&quot;);
+
+<span class="nc" id="L104">		return tranList;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<!-- File Appender -->
+		<File name="LogFile" fileName="C:/Java/log/EDUBankLogger.log" append="true">
+			<PatternLayout pattern="%d{dd-MMM-yyyy HH:mm:ss.SSS}  %level  [%t] %logger{36} [%M] - %msg%n%ex%n" />
+		</File>
+		
+		<!-- Console Appender -->
+<!-- Uncomment the following code as well as line no 21,25 and 29 to log into console -->		
+		<!-- <Console name="console-log" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
+    </Console> -->
+	</Appenders>
+
+
+ <!-- different levels of logging are, All > Trace > Debug > Info > Warn > Error > Fatal > Off
+       
+       If the level is set to Debug, then logger can log Debug, Info, Warn, Error and fatal. -->
+	<Loggers>
+		<Logger name="com.edubank.api" level="INFO" additivity="true">
+			<AppenderRef ref="LogFile" />
+			<!-- <AppenderRef ref="console-log" /> -->
+		</Logger>
+		<Logger name="com.edubank.controller" level="INFO" additivity="true">
+			<AppenderRef ref="LogFile" />
+			<!-- <AppenderRef ref="console-log" /> -->
+		</Logger>
+		<Logger name="com.edubank.utility" level="ERROR" additivity="true">
+			<AppenderRef ref="LogFile" />
+			<!-- <AppenderRef ref="console-log" /> -->
+		</Logger>
+		<Root level="trace"/>
+	</Loggers>
+</Configuration>

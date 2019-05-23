@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CustomerServiceImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.service</a> &gt; <span class="el_source">CustomerServiceImpl.java</span></div><h1>CustomerServiceImpl.java</h1><pre class="source lang-java linenums">package com.edubank.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.edubank.dao.CustomerDAO;
+import com.edubank.model.Customer;
+import com.edubank.validator.CustomerValidator;
+
+/**
+ * This Class contains the methods for business logics related to Customer, like
+ * getCustomer, registerCustomer
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Service(value = &quot;customerService&quot;)
+@Transactional(readOnly = true, rollbackFor=Exception.class)
+<span class="nc" id="L23">public class CustomerServiceImpl implements CustomerService {</span>
+
+	@Autowired
+	private CustomerDAO customerDao;
+
+	/**
+	 * This method is used to get the Customer object corresponding to the given
+	 * customerId
+	 * 
+	 * @param customerId
+	 * 
+	 * @return customer
+	 * 
+	 * @throws Exception
+	 *             if the there is no Customer record corresponding to the given
+	 *             customerId
+	 */
+	@Override
+	public Customer getCustomerByCustomerId(Integer customerId)
+			throws Exception {
+
+		/*
+		 * This method is used to get a Customer model corresponding to its
+		 * customerId It uses session.get() method to interact with database for
+		 * fetching the data
+		 */
+<span class="nc" id="L49">		Customer customer = customerDao.getCustomerByCustomerId(customerId);</span>
+		
+<span class="nc bnc" id="L51" title="All 2 branches missed.">		if (customer == null) {</span>
+<span class="nc" id="L52">			throw new Exception(</span>
+					&quot;CustomerService.CUSTOMER_NOT_FOUND&quot;);
+		}
+
+<span class="nc" id="L56">		return customer;</span>
+	}
+
+	/**
+	 * This method is used to register a new customer by adding each record to
+	 * Customer, CustomerLogin, Account, AccountCustomerMapping and DebitCard
+	 * database tables after validating input parameters
+	 * 
+	 * After successful registration a mail will be sent to the customer
+	 * registered mail id with the details generated
+	 * 
+	 * 
+	 * @param customer, tellerId
+	 * 
+	 * @return Integer
+	 * 
+	 * @throws Exception 
+	 *             if the name specified by the customer is not valid
+	 *             or if the email specified by the customer
+	 *             is not valid or if the age of the customer
+	 *             is less than 18 years
+	 *             
+	 * @throws Exception 
+	 * 
+	 * @throws Exception 
+	 * 				if email given by the customer is already registered with the EDUBank
+	 *             
+	 */
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+	public Integer addCustomer(Customer customer) throws Exception
+	{
+		/*
+		 * The below statement calls Validator method to validate registration details
+		 */
+<span class="nc" id="L91">		CustomerValidator.validateCustomerDetails(customer);</span>
+
+<span class="nc" id="L93">		customer.setEmailId(customer.getEmailId().toLowerCase());</span>
+		
+		/*
+		 * This method is used to get the number customers present with same
+		 * emailId It uses criteria to fetch the data from the database
+		 */
+<span class="nc" id="L99">		Boolean notAvailable = customerDao.checkEmailAvailability(customer.getEmailId());</span>
+
+<span class="nc bnc" id="L101" title="All 2 branches missed.">		if (notAvailable) {</span>
+<span class="nc" id="L102">			throw new Exception(&quot;CustomerService.EMAIL_ALREADY_PRESENT&quot;);</span>
+		}
+
+		/*
+		 * This method is used to add a new Customer with the data from the
+		 * model object It uses session.save() method to save the entity to the
+		 * database we use tellerId from HTTP session to set created by field
+		 */
+<span class="nc" id="L110">		Integer customerId = customerDao.addNewCustomer(customer);</span>
+
+<span class="nc" id="L112">		return customerId;</span>
+	}
+
+	/**
+	 * This method is used to get count of customers
+	 * 
+	 * @return number of customers
+	 */
+	@Override
+	public Long getNoOfCustomers()throws Exception {
+		
+<span class="nc" id="L123">		return customerDao.getNoOfCustomers();</span>
+
+	}
+
+	/**
+	 * This method is used to get the Customer object corresponding to the given
+	 * emailId by making a corresponding DAO call
+	 * 
+	 * @param emailId
+	 * 
+	 * @return Customer
+	 * 
+	 * @throws Exception
+	 *             if  there is no Customer record corresponding to the given emailId
+	 */
+	@Override
+	public Customer getCustomerByEmailId(String emailId) throws Exception
+	{
+
+<span class="nc" id="L142">		Customer customer = null;</span>
+
+		/*
+		 * The below method call is used to get a Customer model corresponding to its
+		 * emailId. It uses session.get() method to interact with database for
+		 * fetching the data
+		 */
+<span class="nc" id="L149">		customer = customerDao.getCustomerByEmailId(emailId);</span>
+		
+<span class="nc bnc" id="L151" title="All 2 branches missed.">		if (customer == null) {</span>
+<span class="nc" id="L152">			throw new Exception(</span>
+					&quot;CustomerService.CUSTOMER_NOT_FOUND&quot;);
+		}
+
+<span class="nc" id="L156">		return customer;</span>
+	}
+
+	@Override
+	public List&lt;Customer&gt; getAllCustomersOfTeller(Integer tellerId) throws Exception {
+<span class="nc" id="L161">		List&lt;Customer&gt; customers = customerDao.getAllCustomersOfTeller(tellerId);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">		if(customers.isEmpty()) {</span>
+<span class="nc" id="L163">			throw new Exception(&quot;TellerService.NO_CUSTOMERS_FOR_TELLER&quot;);</span>
+		}
+<span class="nc" id="L165">		return customers;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

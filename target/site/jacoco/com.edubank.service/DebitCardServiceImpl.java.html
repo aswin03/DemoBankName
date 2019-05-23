@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>DebitCardServiceImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.service</a> &gt; <span class="el_source">DebitCardServiceImpl.java</span></div><h1>DebitCardServiceImpl.java</h1><pre class="source lang-java linenums">package com.edubank.service;
+
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.edubank.dao.AccountDAO;
+import com.edubank.dao.DebitCardDAO;
+import com.edubank.model.AccountCustomerMapping;
+import com.edubank.model.DebitCard;
+import com.edubank.model.DebitCardLockedStatus;
+import com.edubank.model.DebitCardStatus;
+import com.edubank.utility.Hashing;
+import com.edubank.validator.DebitCardValidator;
+
+/**
+ * This is service class implementing the service interface
+ * {@link DebitCardService}. It has methods which contain business logic related
+ * to Debit Cards.
+ * 
+ * @author ETA_JAVA
+ *
+ */
+@Service(value = &quot;debitCardService&quot;)
+@Transactional(readOnly = true)
+<span class="nc" id="L30">public class DebitCardServiceImpl implements DebitCardService {</span>
+	@Autowired
+	private DebitCardDAO debitCardDAO;
+
+	@Autowired
+	private AccountDAO accountDAO;
+
+	/**
+	 * This method receives a {@link DebitCard} object reference and verifies
+	 * the details by calling corresponding DAO class method and throws
+	 * exceptions if verification of debit card details fails
+	 * 
+	 * @param debitCard
+	 * 
+	 * @throws Exception
+	 * @throws Exception
+	 * @throws NoSuchAlgorithmException
+	 */
+	@Override
+	public void verifyCardDetails(DebitCard debitCard)
+			throws Exception {
+<span class="nc" id="L51">		DebitCard debitCardFromDAO = debitCardDAO.getDebitCardDetails(debitCard.getDebitCardNumber());</span>
+
+<span class="nc bnc" id="L53" title="All 2 branches missed.">		if (debitCardFromDAO == null)</span>
+<span class="nc" id="L54">			throw new Exception(&quot;DebitCardService.DEBITCARD_NOT_FOUND&quot;);</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">		if (!&quot;SAVED_CARD_PAYMENT&quot;.equals(debitCard.getCardHolderName())) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">			if (!debitCardFromDAO.getCardHolderName().equalsIgnoreCase(debitCard.getCardHolderName()))</span>
+<span class="nc" id="L58">				throw new Exception(&quot;DebitCardService.INVALID_CARDHOLDER_NAME&quot;);</span>
+		}
+<span class="nc" id="L60">		String hashValueOfCvv = Hashing.getHashValue(debitCard.getCvv());</span>
+
+<span class="nc bnc" id="L62" title="All 2 branches missed.">		if (!debitCardFromDAO.getCvv().equals(hashValueOfCvv))</span>
+<span class="nc" id="L63">			throw new Exception(&quot;DebitCardService.INVALID_CVV&quot;);</span>
+			
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		if (!(debitCardFromDAO.getValidThru().getMonth().equals(debitCard.getValidThru().getMonth())</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">				&amp;&amp; debitCardFromDAO.getValidThru().getYear() == debitCard.getValidThru().getYear()))</span>
+<span class="nc" id="L67">			throw new Exception(&quot;DebitCardService.INVALID_VALID_THRU&quot;);</span>
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">		if (debitCardFromDAO.getValidThru().isBefore(LocalDate.now()))</span>
+<span class="nc" id="L70">			throw new Exception(&quot;DebitCardService.DEBITCARD_EXPIRED&quot;);</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">		if (debitCardFromDAO.getLockedStatus().equals(DebitCardLockedStatus.LOCKED))</span>
+<span class="nc" id="L73">			throw new Exception(&quot;DebitCardService.DEBITCARD_LOCKED&quot;);</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">		if (debitCardFromDAO.getDebitCardStatus().equals(DebitCardStatus.INACTIVE))</span>
+<span class="nc" id="L76">			throw new Exception(&quot;DebitCardService.DEBITCARD_NOT_ACTIVE&quot;);</span>
+<span class="nc" id="L77">	}</span>
+
+	/**
+	 * This method is used to change the debit card pin, it receives a
+	 * {@link DebitCard} object reference, validates the details by calling
+	 * corresponding validator class method, Then it verifies the current pin.
+	 * If the data is valid, it updates the debit card pin for the current
+	 * customer.
+	 * 
+	 * @param customerId
+	 * @param debitCard
+	 * 
+	 * @throws Exception
+	 * @throws Exception
+	 * @throws NoSuchAlgorithmException
+	 */
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+	public void changeDebitCardPin(Integer customerId, DebitCard debitCard)
+			throws Exception {
+
+		/*
+		 * This method validates the debit card pin , along while new pin and
+		 * confirm new pin while changing the debit card pin. Valid debit card
+		 * pin format :- Pin should be of four digit, digits should not be in
+		 * sequence
+		 */
+<span class="nc" id="L104">		DebitCardValidator.validateChangeDebitCardPin(debitCard);</span>
+
+		/*
+		 * This method is used to fetch the AccountCustomerMapping object
+		 * corresponding to
+		 */
+<span class="nc" id="L110">		AccountCustomerMapping accountCustomerMapping = accountDAO.getAccountCustomerMappingByCustomerId(customerId);</span>
+
+		/*
+		 * This method takes accountCustomerMappingId and returns the
+		 * corresponding Debit Card Details
+		 */
+<span class="nc" id="L116">		DebitCard debitCardFromDao = debitCardDAO</span>
+<span class="nc" id="L117">				.getDebitCardDetailsByAccountCustomerMappingId(accountCustomerMapping.getAccountCustomerMappingId());</span>
+
+		/* here we are comparing the hash values of pin */
+<span class="nc bnc" id="L120" title="All 2 branches missed.">		if (!debitCardFromDao.getPin().equals(Hashing.getHashValue(debitCard.getPin()))) {</span>
+<span class="nc" id="L121">			throw new Exception(&quot;DebitCardService.INVALID_CURRENT_PIN&quot;);</span>
+		}
+
+		/* here we are setting the new pin number for the debit card number */
+<span class="nc" id="L125">		debitCard.setNewPin(Hashing.getHashValue(debitCard.getNewPin()));</span>
+<span class="nc" id="L126">		debitCard.setDebitCardNumber(debitCardFromDao.getDebitCardNumber());</span>
+
+		/*
+		 * This method is used the change the debit card pin. it fetches the
+		 * debit card details by the debit card number and updates the pin.
+		 */
+<span class="nc" id="L132">		debitCardDAO.changeDebitCardPin(debitCard);</span>
+<span class="nc" id="L133">	}</span>
+
+	/**
+	 * This method is used to add a debit card record for the newly added
+	 * customer
+	 *
+	 * create the debitcardnumber using the &lt;b&gt;Luhn algorithm&lt;/b&gt;
+	 *
+	 * populate the bean and pass it on to the database
+	 *
+	 * @param mappingId
+	 *            , tellerId
+	 * 
+	 * @return debitCard
+	 */
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+	public DebitCard createNewDebitCard(Integer mappingId, Integer tellerId)
+			throws Exception {
+
+<span class="nc" id="L153">		DebitCard debitCard = new DebitCard();</span>
+
+		/* here we are setting the values for new debit card */
+<span class="nc" id="L156">		String debitCardNumber = createDebitCardNumber();</span>
+
+		/* here we are creating new cvv and pin no using random method */
+<span class="nc" id="L159">		String cvv = &quot;&quot; + (int) (100 + Math.random() * 899);</span>
+<span class="nc" id="L160">		String pin = &quot;&quot; + (int) (1000 + Math.random() * 8999);</span>
+<span class="nc" id="L161">		LocalDate validFrom = LocalDate.now();</span>
+<span class="nc" id="L162">		LocalDate validThru = LocalDate.now().plusYears(5);</span>
+
+<span class="nc" id="L164">		debitCard.setAccountCustomerMappingId(mappingId);</span>
+<span class="nc" id="L165">		debitCard.setDebitCardNumber(debitCardNumber);</span>
+<span class="nc" id="L166">		debitCard.setCvv(cvv);</span>
+<span class="nc" id="L167">		debitCard.setDebitCardStatus(DebitCardStatus.ACTIVE);</span>
+<span class="nc" id="L168">		debitCard.setLockedStatus(DebitCardLockedStatus.UNLOCKED);</span>
+<span class="nc" id="L169">		debitCard.setPin(pin);</span>
+<span class="nc" id="L170">		debitCard.setValidFrom(validFrom);</span>
+<span class="nc" id="L171">		debitCard.setValidThru(validThru);</span>
+
+		/*
+		 * This method is used to add a debit card record for the newly added
+		 * customer populate the entity from bean and persist using save()
+		 */
+<span class="nc" id="L177">		debitCardDAO.addDebitCard(debitCard, tellerId);</span>
+
+<span class="nc" id="L179">		return debitCard;</span>
+	}
+
+	/**
+	 * The method used to create the debitcardnumber using the &lt;b&gt;Luhn
+	 * algorithm&lt;/b&gt;
+	 * 
+	 * The MOD 10 algorithm is a checksum (detection of errors) formula which is
+	 * the common name for the Luhn algorithm. This formula has been in use to
+	 * validate a lot of identification numbers besides debir cards since its
+	 * development by scientist Hans Peter Luhn from IBM
+	 *
+	 * @return String
+	 */
+	private String createDebitCardNumber() throws Exception {
+
+		/*
+		 * This method is used to add a debit card record for the newly added
+		 * customer populate the entity from bean and persist using save()
+		 */
+<span class="nc" id="L199">		String lastCard = debitCardDAO.getLastCardNumber();</span>
+
+		/*
+		 * here we are creating a new no for debit card using previous card no
+		 */
+<span class="nc" id="L204">		int firstFourDigt = Integer.parseInt(lastCard.substring(0, 4));</span>
+<span class="nc" id="L205">		int twoDigSeq = Integer.parseInt(lastCard.substring(4, 6));</span>
+<span class="nc" id="L206">		String sixDigIfsc = lastCard.substring(6, 12);</span>
+<span class="nc" id="L207">		int threeDigSeq = Integer.parseInt(lastCard.substring(12, 15));</span>
+
+<span class="nc" id="L209">		twoDigSeq++;</span>
+<span class="nc" id="L210">		threeDigSeq++;</span>
+<span class="nc" id="L211">		String debitCardNo = &quot;&quot; + firstFourDigt + twoDigSeq + sixDigIfsc + threeDigSeq;</span>
+
+		/* The method returns us the last digit of debitCardNo */
+<span class="nc" id="L214">		Integer lastDigit = findLastDigit(debitCardNo);</span>
+
+<span class="nc" id="L216">		debitCardNo += lastDigit;</span>
+<span class="nc" id="L217">		return debitCardNo;</span>
+	}
+
+	/**
+	 * The method is a helping method for createDebitCardNumber()
+	 * 
+	 * @param debitCardNo
+	 * 
+	 * @return Integer
+	 */
+	private Integer findLastDigit(String debitCardNo) {
+
+<span class="nc" id="L229">		boolean flag = true;</span>
+<span class="nc" id="L230">		Integer first15DigitSum = 0;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">		for (int i = debitCardNo.length() - 1; i &gt;= 0; i--) {</span>
+
+<span class="nc" id="L233">			int addingDigit = (int) debitCardNo.charAt(i);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">			if (flag) {</span>
+<span class="nc" id="L235">				addingDigit *= 2;</span>
+			}
+
+<span class="nc" id="L238">			int sum = 0;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">			while (addingDigit &gt; 9) {</span>
+<span class="nc" id="L240">				sum = 0;</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">				while (addingDigit &gt; 0) {</span>
+					int rem;
+<span class="nc" id="L243">					rem = addingDigit % 10;</span>
+<span class="nc" id="L244">					sum = sum + rem;</span>
+<span class="nc" id="L245">					addingDigit = addingDigit / 10;</span>
+<span class="nc" id="L246">				}</span>
+<span class="nc" id="L247">				addingDigit = sum;</span>
+			}
+<span class="nc" id="L249">			first15DigitSum += addingDigit;</span>
+
+		}
+
+<span class="nc" id="L253">		int number = first15DigitSum * 9;</span>
+
+<span class="nc" id="L255">		return number % 10;</span>
+	}
+
+	/**
+	 * This method is used to verify the pin of the debit card and get the
+	 * AccountCustomer MappingId
+	 * 
+	 * @param debitCardNumber,pin
+	 * 
+	 * @return mappingId
+	 * 
+	 * @throws NoSuchAlgorithmException
+	 * @throws Exception
+	 * @throws Exception
+	 */
+	@Override
+
+	public Integer verifyPinAndGetAccountCustomerMappingId(String debitCardNumber, String pin)
+			throws Exception {
+
+		/*
+		 * This method is used to get the pin of the debit card and customer
+		 * account mappingId
+		 */
+<span class="nc" id="L279">		Object[] pinAndMappingId = debitCardDAO.getPinAndMappingIdOfdebitCard(debitCardNumber);</span>
+
+		/* here we are comparing the hash values of pin */
+<span class="nc bnc" id="L282" title="All 2 branches missed.">		if (!Hashing.getHashValue(pin).equals(pinAndMappingId[0].toString())) {</span>
+<span class="nc" id="L283">			throw new Exception(&quot;DebitCardService.INVALID_PIN_EXCEPTION&quot;);</span>
+		}
+<span class="nc" id="L285">		return (int) pinAndMappingId[1];</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

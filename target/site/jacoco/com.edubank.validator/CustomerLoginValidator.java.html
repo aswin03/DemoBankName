@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CustomerLoginValidator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">BankAPP1</a> &gt; <a href="index.source.html" class="el_package">com.edubank.validator</a> &gt; <span class="el_source">CustomerLoginValidator.java</span></div><h1>CustomerLoginValidator.java</h1><pre class="source lang-java linenums">package com.edubank.validator;
+
+import com.edubank.model.CustomerLogin;
+
+/**
+ * The LoginValidator class is a utility class having static methods, used to
+ * validate the data entered from the login form, change password and reset password.  &lt;br&gt;
+ * &lt;i&gt;Example:-&lt;/i&gt; Login Name, Password
+ * 
+ * @author ETA_JAVA
+ *
+ */
+<span class="nc" id="L13">public class CustomerLoginValidator {</span>
+
+	/**
+	 * This method validates loginName and password whether they are in proper
+	 * format or not. Valid format:- &lt;h4&gt;loginName&lt;/h4&gt; should contain only
+	 * alphabets or number, no special characters or spaces.
+	 * 
+	 * &lt;h4&gt;password&lt;/h4&gt; should be of 8 to 20 characters, should have at least
+	 * one upper case, one lower case, one number and one special character
+	 * among {!, #, $, %, ^, &amp;, *, (, )}
+	 *
+	 * @param customerLogin
+	 * 
+	 * @throws Exception
+	 *             if the loginName is not matching the above format or if the
+	 *             password is not matching the above format
+	 */
+	public static void validateLoginDetails(CustomerLogin customerLogin)
+			throws Exception {
+		
+		/*
+		 * here if customerLoginName has any character other than
+		 * lower case or upper case alphabet or number
+		 * then it will throw InvalidCustomerCredentialsException
+		 **/
+<span class="fc bfc" id="L38" title="All 2 branches covered.">	 	if (!customerLogin.getLoginName().matches(&quot;[a-zA-Z0-9.\\_]+&quot;)) {</span>
+
+<span class="fc" id="L40">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_CREDENTIALS&quot;);
+		}
+	 	
+	 	/* here we are checking for valid password */
+<span class="fc bfc" id="L45" title="All 2 branches covered.">		if (!validatePassword(customerLogin.getPassword())) {</span>
+<span class="fc" id="L46">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_CREDENTIALS&quot;);
+		}
+
+<span class="fc" id="L50">	}</span>
+
+	/**
+	 * This method is used to validate the format of password&lt;br&gt;
+	 * &lt;b&gt;password&lt;/b&gt; should be of 8 to 20 characters, should have at least one
+	 * upper case, one lower case, one number and one special character among
+	 * {!, #, $, %, ^, &amp;, *, (, )}
+	 * 
+	 * @param password
+	 * 
+	 * @return true if the password is matching the above conditions, else
+	 *         false. &lt;br&gt;
+	 * 
+	 */
+	public static boolean validatePassword(String password) {
+		
+		/*
+		 * this condition checks the length of password */
+<span class="fc bfc" id="L68" title="All 4 branches covered.">		if (password.length() &gt;= 8 &amp;&amp; password.length() &lt;= 20) {</span>
+			
+		/*
+		 * this condition checks if password has any upper case character or not */
+<span class="fc bfc" id="L72" title="All 2 branches covered.">			if (password.matches(&quot;.*[A-Z].*&quot;)) {</span>
+			
+		/*
+		 * this condition check for lower case character in password */
+<span class="fc bfc" id="L76" title="All 2 branches covered.">				if (password.matches(&quot;.*[a-z].*&quot;)) {</span>
+		/*
+		 * this condition check for number in password */
+<span class="fc bfc" id="L79" title="All 2 branches covered.">					if (password.matches(&quot;.*[0-9].*&quot;)) {</span>
+		/*
+		 * this condition check for special characters {!, #, $, %, ^, &amp;, *, (, )} in password */				
+<span class="fc" id="L82">						if (password</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">								.matches(&quot;.*(!|#|\\$|%|\\^|&amp;|\\*|\\(|\\)).*&quot;)) {</span>
+<span class="fc" id="L84">							return true;</span>
+						}
+					}
+				}
+			}
+		}
+<span class="fc" id="L90">		return false;</span>
+	}
+
+	/**
+	 * This method validates password, newPassword and confirmNewPassword
+	 * whether they are in proper format or not. Valid format:-
+	 * 
+	 * &lt;h4&gt;passwords&lt;/h4&gt; should be of 8 to 20 characters, should have at least
+	 * one upper case, one lower case, one number and one special character
+	 * among {!, #, $, %, ^, &amp;, *, (, )}
+	 *
+	 * @param customerLogin
+	 * 
+	 * @throws Exception
+	 *             with message &lt;i&gt;LoginValidator.INVALID_PASSWORD_FORMAT&lt;/i&gt; if
+	 *             the password is not matching the above format
+	 * 				or
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.INVALID_NEW_PASSWORD_FORMAT&lt;/i&gt; if the
+	 *             newPassword is not matching the above format
+	 * 				or
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.INVALID_CONFIRM_NEW_PASSWORD_FORMAT&lt;/i&gt; if
+	 *             the confirmNewPassword is not matching the above format
+	 * 				or
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.INVALID_CONFIRM_NEW_PASSWORD_FORMAT&lt;/i&gt; if
+	 *             the newPassword is not matching the confirmNewPassword
+	 * 
+	 * 				or
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.OLD_PASSWORD_NEW_PASSWORD_SAME&lt;/i&gt; if the
+	 *             newPassword is same as old password
+	 */
+	public static void validateChangePasswordDetails(CustomerLogin customerLogin)
+			throws Exception {
+		
+		/* here we are validating the password
+		 * passwords should be of 8 to 20 characters, should have at least
+		 * one upper case, one lower case, one number and one special character
+		 * among {!, #, $, %, ^, &amp;, *, (, )}
+		 **/
+<span class="fc bfc" id="L132" title="All 2 branches covered.">		if (!validatePassword(customerLogin.getPassword())) {</span>
+<span class="fc" id="L133">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_PASSWORD_FORMAT&quot;);
+		}
+		
+		/* here we are validating the new password
+		 * passwords should be of 8 to 20 characters, should have at least
+		 * one upper case, one lower case, one number and one special character
+		 * among {!, #, $, %, ^, &amp;, *, (, )}
+		 **/
+<span class="fc bfc" id="L142" title="All 2 branches covered.">		if (!validatePassword(customerLogin.getNewPassword())) {</span>
+<span class="fc" id="L143">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_NEW_PASSWORD_FORMAT&quot;);
+		}
+		
+		/* here we are validating the confirm new password
+		 * passwords should be of 8 to 20 characters, should have at least
+		 * one upper case, one lower case, one number and one special character
+		 * among {!, #, $, %, ^, &amp;, *, (, )}
+		 **/	
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		if (!validatePassword(customerLogin.getConfirmNewPassword())) {</span>
+<span class="fc" id="L153">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_CONFIRM_NEW_PASSWORD_FORMAT&quot;);
+		}
+		
+		/*
+		 * here we are validating whether new password and confirm new password are equal or not
+		 **/
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">		if (!customerLogin.getNewPassword().equals(</span>
+<span class="fc" id="L161">				customerLogin.getConfirmNewPassword())) {</span>
+<span class="fc" id="L162">			throw new Exception(</span>
+					&quot;LoginValidator.CONFIRM_NEW_PASSWORD_MISSMATCH&quot;);
+		}
+
+<span class="nc" id="L166">	}</span>
+
+	/**
+	 * This method validates newPassword and confirmNewPassword
+	 * whether they are in proper format or not. Valid format:-
+	 * 
+	 * &lt;h4&gt;passwords&lt;/h4&gt; should be of 8 to 20 characters, should have at least
+	 * one upper case, one lower case, one number and one special character
+	 * among {!, #, $, %, ^, &amp;, *, (, )}
+	 *
+	 * @param newPassword
+	 * @param confirmNewPassword
+	 *  
+	 * @throws Exception
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.INVALID_NEW_PASSWORD_FORMAT&lt;/i&gt; if the
+	 *             newPassword is not matching the above format
+	 *				or 
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.INVALID_CONFIRM_NEW_PASSWORD_FORMAT&lt;/i&gt; if
+	 *             the confirmNewPassword is not matching the above format
+	 * 				or 
+	 *             with message
+	 *             &lt;i&gt;LoginValidator.INVALID_CONFIRM_NEW_PASSWORD_FORMAT&lt;/i&gt; if
+	 *             the newPassword is not matching the confirmNewPassword
+	 */
+	public static void validateResetPasswordDetails(String newPassword, String confirmNewPassword)
+			throws 	Exception
+			
+	{
+		
+		/* here we are validating the newPassword
+		 * passwords should be of 8 to 20 characters, should have at least
+		 * one upper case, one lower case, one number and one special character
+		 * among {!, #, $, %, ^, &amp;, *, (, )}
+		 **/
+<span class="fc bfc" id="L202" title="All 2 branches covered.">		if (!validatePassword(newPassword)) {</span>
+<span class="fc" id="L203">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_NEW_PASSWORD_FORMAT&quot;);
+		}
+		
+		/* here we are validating the confirmNewPassword
+		 * passwords should be of 8 to 20 characters, should have at least
+		 * one upper case, one lower case, one number and one special character
+		 * among {!, #, $, %, ^, &amp;, *, (, )}
+		 **/
+<span class="fc bfc" id="L212" title="All 2 branches covered.">		if (!validatePassword(confirmNewPassword)) {</span>
+<span class="fc" id="L213">			throw new Exception(</span>
+					&quot;LoginValidator.INVALID_CONFIRM_NEW_PASSWORD_FORMAT&quot;);
+		}
+		
+		/*
+		 * here we are validating whether new password and confirm new password are equal or not
+		 **/
+<span class="fc bfc" id="L220" title="All 2 branches covered.">		if (!newPassword.equals(confirmNewPassword)) {</span>
+<span class="fc" id="L221">			throw new Exception(</span>
+					&quot;LoginValidator.CONFIRM_NEW_PASSWORD_MISSMATCH&quot;);
+		}
+<span class="fc" id="L224">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
