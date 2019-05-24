@@ -22,7 +22,7 @@
 <div class="row">	
 	<div class="col-md-offset-1 col-md-4 col-sm-offset-1 col-sm-5 col-xs-offset-1 col-xs-7">
 		<div class="col-md-12 col-sm-12 col-xs-12">
-			<span class="label-heading">CUSTOMER LOGIN</span>
+			<span class="label-heading">CUSTOMER LOGIN 1</span>
 			<br>
 			<hr class="underLine col-md-10 col-sm-12 col-xs-12">
 		</div>
